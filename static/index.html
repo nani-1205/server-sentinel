@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF--8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Server Sentinel</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Server Sentinel</h1>
+            <p>Automated Health Checks & Reporting</p>
+        </header>
+
+        <main>
+            <div class="card control-panel">
+                <h2>Manual Control</h2>
+                <button id="run-manual-btn">Run Checks Manually</button>
+                <div class="logs-container">
+                    <h3>Live Logs</h3>
+                    <pre id="logs"></pre>
+                </div>
+            </div>
+
+            <div class="card dashboard">
+                <h2>Latest Report</h2>
+                <div class="charts-grid">
+                    <div class="chart-container">
+                        <h3>CPU Usage (%)</h3>
+                        <canvas id="cpuChart"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <h3>Memory Usage (MB)</h3>
+                        <canvas id="memChart"></canvas>
+                    </div>
+                </div>
+                <div class="table-container">
+                    <h3>Server Details</h3>
+                    <table id="detailsTable">
+                        <thead>
+                            <tr>
+                                <th>Server</th>
+                                <th>Status</th>
+                                <th>CPU %</th>
+                                <th>Mem Used</th>
+                                <th>Mem Free</th>
+                                <th>Top Process</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Data will be populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/static/js/app.js"></script>
+</body>
+</html>

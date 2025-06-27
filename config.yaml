@@ -1,0 +1,26 @@
+# List of servers to monitor
+servers:
+  - name: "Web Server 01"
+    host: "192.168.1.10"
+    port: 22
+    user: "your_user"
+  - name: "DB Server"
+    host: "192.168.1.11"
+    port: 22
+    user: "your_user"
+  # Add more servers here
+
+# SMTP settings for sending email reports
+smtp:
+  host: "smtp.example.com"
+  port: 587
+  username: "your-email@example.com"
+  password: "your-email-password" # For app passwords, use them here
+  from: "your-email@example.com"
+  to:
+    - "recipient1@example.com"
+    - "recipient2@example.com"
+
+# The private key for SSH authentication
+# Use an absolute path or a path relative to the executable
+ssh_key_path: "~/.ssh/id_rsa"
