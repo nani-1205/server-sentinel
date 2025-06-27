@@ -13,7 +13,8 @@ import (
 func CreateReport(reports []serverops.HealthReport) (string, error) {
 	f := excelize.NewFile()
 	sheetName := "Health Report"
-	index := f.NewSheet(sheetName)
+	f.SetSheetName("Sheet1", sheetName)
+	index := f.GetSheetIndex(sheetName)
 
 	// Set Headers
 	headers := []string{"Server Name", "Status", "Timestamp", "Cache Cleared", "CPU Usage (%)", "Mem Total (MB)", "Mem Used (MB)", "Mem Free (MB)", "Swap Total (MB)", "Swap Used (MB)", "Top 5 Processes by Memory", "Error"}
