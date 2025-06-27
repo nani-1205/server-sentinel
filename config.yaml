@@ -2,10 +2,10 @@
 servers:
   # This server uses an SSH key for authentication
   - name: "Web Server 01 (Key Auth)"
-    host: "18.60.39.71"
+    host: "1.1.1.1"
     port: 22
-    user: "ec2-user"
-    key_path: "/tmp/HYD.pem" # Specify the key path for this server
+    user: "root" # Replace with your username for this server
+    key_path: "/path/to/pem" # Specify the key path for this server
 
   # This server uses a password for authentication
   - name: "DB Server (Password Auth)"
@@ -25,10 +25,10 @@ servers:
 smtp:
   host: "smtp.gmail.com"
   port: 587
-  username: "nani.y9966@gmail.com"
+  username: "example@gmail.com" # Replace with your Gmail address
   password: "your-google-app-password" # Make sure this is your app password
-  from: "nani.y9966@gmail.com"
+  from: "example@gmail.com" # Replace with your Gmail address
   to:
-    - "prabhakararao.nandigrama@assettl.com"
+    - "example@gmail.com" # Replace with the email address to receive reports
 
 # The global ssh_key_path is no longer used and can be deleted from this file.
