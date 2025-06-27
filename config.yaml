@@ -15,7 +15,7 @@ smtp:
   host: "smtp.example.com"
   port: 587
   username: "nani.y9966@gamil.com" # Use your email address
-  password: "" # For app passwords, use them here
+  password: "sfjwjzerlgbegogf" # For app passwords, use them here
   from: "nani.y9966@gmail.com"
   to:
     - "prabhakararao.nandigrama@assettl.com"
@@ -23,4 +23,4 @@ smtp:
 
 # The private key for SSH authentication
 # Use an absolute path or a path relative to the executable
-ssh_key_path: "~/.ssh/id_rsa"
+ssh_key_path: "/tmp/HYD.pem"
