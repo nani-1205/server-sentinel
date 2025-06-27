@@ -117,6 +117,8 @@ func PerformHealthCheck(server config.Server, wsLog func(msg string)) HealthRepo
 
 	// 2. Clear Cache (requires sudo NOPASSWD setup)
 	wsLog(fmt.Sprintf("[%s] Attempting to clear cache...", server.Name))
+	_, err = executeSSH(server, "sudo /bin/sh -c 'echo 1 > /proc/sys/vm/drop_caches'")
+	_, err = executeSSH(server, "sudo /bin/sh -c 'echo 2 > /proc/sys/vm/drop_caches'")
 	_, err = executeSSH(server, "sudo /bin/sh -c 'echo 3 > /proc/sys/vm/drop_caches'")
 	if err != nil {
 		report.CacheCleared = false
