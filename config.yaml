@@ -12,7 +12,7 @@ servers:
 
 # SMTP settings for sending email reports
 smtp:
-  host: "smtp.gmail.com"
+  host: "smtp.gmail.com" # Use your SMTP server
   port: 587
   username: "nani.y9966@gamil.com" # Use your email address
   password: "sfjwjzerlgbegogf" # For app passwords, use them here
