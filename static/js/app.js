@@ -111,43 +111,36 @@ document.addEventListener('DOMContentLoaded', () => {
         const server = servers.find(s => s.name === serverName);
         if (!server) return;
 
-        // --- Start of The Fix ---
-        
-        // 1. Clear previous state
-        if (cpuChart) cpuChart.destroy();
-        if (memChart) memChart.destroy();
-        detailInfoContent.innerHTML = ''; // Clear the entire info panel
-        cpuChartCanvas.parentElement.classList.remove('no-data');
-        memChartCanvas.parentElement.classList.remove('no-data');
-
-        // 2. Set static info
         detailServerName.textContent = server.name;
         runSingleBtn.dataset.serverName = server.name;
         
-        // 3. Find report and rebuild the entire view based on data
+        // Use a single variable to track the report for clarity
         const serverReport = latestReportData.find(r => r.serverName === serverName);
+
+        // --- Start of The Fix ---
         
+        // Always destroy old charts
+        if (cpuChart) cpuChart.destroy();
+        if (memChart) memChart.destroy();
+
+        // Always clear and rebuild the info panel
+        detailInfoContent.innerHTML = `
+            <p><strong>Host:</strong> ${server.host}:${server.port}</p>
+            <p><strong>User:</strong> ${server.user}</p>
+        `;
+
         if (serverReport) {
-            // DATA FOUND: Build the full detailed view
-            detailInfoContent.innerHTML = `
-                <p><strong>Host:</strong> ${server.host}:${server.port}</p>
-                <p><strong>User:</strong> ${server.user}</p>
+            // DATA FOUND: Append details and create new charts
+            detailInfoContent.innerHTML += `
                 <hr>
                 <p><strong>Status:</strong> ${serverReport.isOnline ? 'Online' : 'Offline'}</p>
                 <p><strong>CPU Usage:</strong> ${serverReport.cpuUsage.toFixed(2)} %</p>
                 <p><strong>Memory:</strong> ${serverReport.memUsedMB} MB Used / ${serverReport.memTotalMB} MB Total</p>
                 <p><strong>Top Processes:</strong><pre>${serverReport.topProcesses}</pre></p>
             `;
+            // CORRECTED CHART CREATION CALLS
             cpuChart = createChart(cpuChartCanvas, 'CPU', [serverReport.cpuUsage.toFixed(2)], '%');
             memChart = createChart(memChartCanvas, 'Memory', [serverReport.memUsedMB], 'MB');
-        } else {
-            // NO DATA: Build a simple view and show "no data" messages
-            detailInfoContent.innerHTML = `
-                <p><strong>Host:</strong> ${server.host}:${server.port}</p>
-                <p><strong>User:</strong> ${server.user}</p>
-            `;
-            cpuChartCanvas.parentElement.classList.add('no-data');
-            memChartCanvas.parentElement.classList.add('no-data');
         }
         // --- End of The Fix ---
     };
@@ -190,6 +183,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return gradient;
     }
 
+    // Updated createChart function to match the corrected call signature
     function createChart(canvasEl, label, data, unit) {
         const ctx = canvasEl.getContext('2d');
         const isLightMode = document.body.classList.contains('light-mode');
@@ -199,10 +193,10 @@ document.addEventListener('DOMContentLoaded', () => {
         return new Chart(ctx, {
             type: 'bar',
             data: { 
-                labels: [label],
+                labels: [label], // Uses the passed 'label' for the x-axis
                 datasets: [{ 
                     label: `${label} Usage`,
-                    data: data, 
+                    data: data, // Uses the passed 'data' for the bar height
                     backgroundColor: (context) => createGradient(context.chart.ctx, context.chart.chartArea, label === 'CPU'),
                     borderColor: 'rgba(255, 255, 255, 0.25)',
                     borderWidth: 1,
