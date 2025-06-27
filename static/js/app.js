@@ -5,8 +5,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const detailView = document.getElementById('detail-view');
     const serverCardsContainer = document.getElementById('server-cards-container');
     const logsEl = document.getElementById('logs');
-    const logPanel = document.querySelector('.log-panel');
-    const logToggleBtn = document.getElementById('log-toggle-btn');
+    const logWidgetBtn = document.getElementById('log-widget-btn');
+    const logWindow = document.getElementById('log-window');
+    const logCloseBtn = document.getElementById('log-close-btn');
     const runAllBtn = document.getElementById('run-all-btn');
     const runSelectedBtn = document.getElementById('run-selected-btn');
     const runSingleBtn = document.getElementById('run-single-btn');
@@ -16,7 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let cpuChart, memChart;
     let servers = [];
-    let latestReportData = []; // Store the full report data
+    let latestReportData = [];
     let socket;
 
     // --- Theme Manager ---
@@ -59,10 +60,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (msg.includes('🏁 Process complete.')) {
                 enableAllButtons();
                 fetchLatestReport().then(() => {
-                    // If we are on a detail page, refresh its data
                     if (detailView.classList.contains('active')) {
                         const serverName = detailServerName.textContent;
-                        populateDetailView(serverName, true); // force data refresh
+                        populateDetailView(serverName, true);
                     }
                 });
             }
@@ -81,7 +81,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (serverName) runChecks([serverName]);
     });
     backToDashboardBtn.addEventListener('click', () => showView('dashboard-view'));
-    logToggleBtn.addEventListener('click', () => logPanel.classList.toggle('collapsed'));
+    logWidgetBtn.addEventListener('click', () => logWindow.classList.toggle('visible'));
+    logCloseBtn.addEventListener('click', () => logWindow.classList.remove('visible'));
 
     // --- Core Functions ---
     const runChecks = (serverList) => {
@@ -100,13 +101,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const renderServerCard = (server) => `
         <div class="card server-card" data-server-name="${server.name}">
-            <div class="card-header">
-                <h3>${server.name}</h3>
-                <div class="status online">
-                    <div class="status-dot"></div>
-                    <span>Online</span>
-                </div>
-            </div>
+            <div class="card-header"><h3>${server.name}</h3></div>
             <div class="card-body">
                 <p><strong>Host:</strong> ${server.host}</p>
                 <p><strong>User:</strong> ${server.user}</p>
@@ -117,7 +112,7 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
         </div>`;
 
-    const populateDetailView = (serverName, forceDataRefresh = false) => {
+    const populateDetailView = (serverName) => {
         const server = servers.find(s => s.name === serverName);
         if (!server) return;
 
@@ -125,31 +120,27 @@ document.addEventListener('DOMContentLoaded', () => {
         detailInfoContent.innerHTML = `<p><strong>Host:</strong> ${server.host}:${server.port}</p><p><strong>User:</strong> ${server.user}</p>`;
         runSingleBtn.dataset.serverName = server.name;
 
-        // Find the data for this specific server from the last report
+        // Clear previous charts
+        if (cpuChart) cpuChart.destroy();
+        if (memChart) memChart.destroy();
+        detailInfoContent.querySelector('.detailed-metrics')?.remove();
+        
         const serverReport = latestReportData.find(r => r.serverName === serverName);
         if (serverReport) {
-            // Update CPU Chart
-            if (cpuChart) cpuChart.destroy();
             cpuChart = createChart('cpuChart', 'bar', [serverReport.serverName], 'CPU Usage %', [serverReport.cpuUsage.toFixed(2)], 'rgba(62, 123, 225, 0.6)');
-            
-            // Update Memory Chart
-            if (memChart) memChart.destroy();
             memChart = createChart('memChart', 'bar', [serverReport.serverName], 'Memory Used (MB)', [serverReport.memUsedMB], 'rgba(76, 175, 80, 0.6)');
-
-            // Add detailed metrics to the info box
-            detailInfoContent.innerHTML += `
+            
+            const metricsDiv = document.createElement('div');
+            metricsDiv.className = 'detailed-metrics';
+            metricsDiv.innerHTML = `
                 <hr>
                 <p><strong>Status:</strong> ${serverReport.isOnline ? 'Online' : 'Offline'}</p>
                 <p><strong>CPU Usage:</strong> ${serverReport.cpuUsage.toFixed(2)} %</p>
                 <p><strong>Memory:</strong> ${serverReport.memUsedMB} MB Used / ${serverReport.memTotalMB} MB Total</p>
                 <p><strong>Top Processes:</strong><pre>${serverReport.topProcesses}</pre></p>
             `;
-        } else {
-             // Clear charts if no data is available
-            if (cpuChart) cpuChart.destroy();
-            if (memChart) memChart.destroy();
+            detailInfoContent.appendChild(metricsDiv);
         }
-
         showView('detail-view');
     };
     
@@ -157,7 +148,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const response = await fetch('/api/latest-report');
             if (response.ok) latestReportData = await response.json();
-            else latestReportData = []; // Clear data if fetch fails
+            else latestReportData = [];
         } catch (error) {
             console.error('Failed to fetch latest report:', error);
             latestReportData = [];
@@ -166,7 +157,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const initializeDashboard = async () => {
         try {
-            await fetchLatestReport(); // Get any existing data on load
+            await fetchLatestReport();
             const response = await fetch('/api/servers');
             servers = await response.json();
             
@@ -186,10 +177,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const ctx = document.getElementById(canvasId).getContext('2d');
         return new Chart(ctx, {
             type: type,
-            data: {
-                labels: labels,
-                datasets: [{ label: label, data: data, backgroundColor: color }]
-            },
+            data: { labels: labels, datasets: [{ label: label, data: data, backgroundColor: color }] },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,

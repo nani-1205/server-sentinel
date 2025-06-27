@@ -81,14 +81,16 @@ body.light-mode {
     transition: background-color 0.2s, color 0.2s;
 }
 .nav-item:hover { background-color: rgba(128, 128, 128, 0.1); }
-.nav-item.active { background-color: var(--primary-variant-color); color: white; }
+.nav-item.active {
+    background-color: var(--primary-variant-color);
+    color: white;
+}
 .nav-item svg { width: 20px; height: 20px; }
 
 .main-content {
     display: flex;
     flex-direction: column;
     overflow-y: auto;
-    padding-bottom: 60px;
 }
 .header {
     padding: 24px 32px;
@@ -124,53 +126,18 @@ main { padding: 32px; }
 .server-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
 .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
 .card-header h3 { margin: 0; font-size: 1.1rem; }
-.status { display: flex; align-items: center; gap: 8px; font-size: 0.9rem; font-weight: 500; }
-.status-dot { width: 10px; height: 10px; border-radius: 50%; }
-.status.online .status-dot { background-color: #28a745; }
-.status.offline .status-dot { background-color: #dc3545; }
 .card-body p { margin: 4px 0; color: var(--text-secondary); font-size: 0.9rem; }
 .card-footer { margin-top: 16px; display: flex; align-items: center; gap: 8px; }
 
 .detail-header { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; }
 .detail-header h2 { margin: 0; }
-
-/* --- NEW, STABLE 2-COLUMN LAYOUT FOR DETAIL VIEW --- */
-.detail-grid {
-    display: grid;
-    grid-template-columns: 300px 1fr; /* Fixed-width info panel, flexible main panel */
-    gap: 24px;
-    align-items: start; /* Align items to the top */
-}
-
-.detail-main-panel {
-    display: flex;
-    flex-direction: column;
-    gap: 24px;
-    min-width: 0; /* Prevents flexbox overflow issues */
-}
-/* --- END OF NEW LAYOUT RULES --- */
-
-.detail-info h3, .detail-charts h3, .detail-metrics h3 { margin-top: 0; margin-bottom: 16px; }
+.detail-grid { display: grid; grid-template-columns: 1fr 2fr; gap: 24px; }
+.detail-info h3 { margin-top: 0; }
 .detail-info-content p { margin: 8px 0; }
 .detail-info-content strong { color: var(--text-primary); }
 .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+.charts-grid > .chart-container { min-width: 0; }
 .chart-container { min-height: 250px; position: relative; }
-.detail-metrics-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 0.9rem;
-}
-.detail-metrics-table th, .detail-metrics-table td {
-    text-align: left;
-    padding: 10px 8px;
-    border-bottom: 1px solid var(--border-color);
-}
-.detail-metrics-table th { font-weight: 600; color: var(--text-secondary); width: 40%; }
-.detail-metrics-table td { font-weight: 500; }
-.detail-metrics-table pre {
-    margin: 0; font-family: 'Fira Code', 'Courier New', monospace;
-    white-space: pre-wrap; word-break: break-all;
-}
 
 .btn {
     padding: 10px 20px;
@@ -188,26 +155,71 @@ main { padding: 32px; }
 .btn-tertiary { background: none; color: var(--primary-color); padding: 0; }
 .btn:disabled { background-color: #555; cursor: not-allowed; }
 
-.log-panel {
+/* New Floating Log Widget CSS */
+#log-widget-container {
     position: fixed;
-    bottom: 0;
-    left: 240px;
-    right: 0;
-    background-color: var(--surface-color);
-    border-top: 1px solid var(--border-color);
-    z-index: 20;
-    transition: height 0.3s ease;
+    bottom: 24px;
+    right: 24px;
+    z-index: 1000;
 }
-.log-header {
-    padding: 8px 16px;
+.log-widget-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    border-radius: 50px;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    font-size: 1rem;
     font-weight: 600;
     cursor: pointer;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    transition: all 0.3s ease;
+}
+.log-widget-btn:hover { background-color: var(--primary-variant-color); transform: translateY(-2px); }
+.log-status-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    background-color: #28a745;
+    animation: pulse 2s infinite;
+}
+@keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.7); }
+    70% { box-shadow: 0 0 0 10px rgba(40, 167, 69, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0); }
+}
+
+.log-window {
+    width: 500px;
+    max-height: 400px;
+    background-color: var(--surface-color);
+    border-radius: 12px;
+    box-shadow: 0 5px 25px rgba(0,0,0,0.3);
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    bottom: calc(100% + 16px);
+    right: 0;
+    visibility: hidden;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all 0.3s ease;
+}
+.log-window.visible {
+    visibility: visible;
+    opacity: 1;
+    transform: translateY(0);
+}
+.log-header {
+    padding: 12px 16px;
+    font-weight: 600;
+    border-bottom: 1px solid var(--border-color);
     display: flex;
     justify-content: space-between;
 }
-#log-toggle-btn { background: none; border: none; color: var(--text-secondary); cursor: pointer; font-size: 1.2rem; }
+#log-close-btn { background: none; border: none; color: var(--text-secondary); cursor: pointer; font-size: 1.5rem; line-height: 1; }
 .log-content {
-    height: 150px;
+    flex-grow: 1;
     overflow-y: auto;
     margin: 0;
     padding: 16px;
@@ -216,8 +228,8 @@ main { padding: 32px; }
     font-size: 0.85rem;
     white-space: pre-wrap;
 }
-.log-panel.collapsed .log-content { display: none; }
 
+/* Theme Toggle Switch */
 .switch { position: relative; display: inline-block; width: 50px; height: 26px; }
 .switch input { opacity: 0; width: 0; height: 0; }
 .slider {
@@ -231,11 +243,5 @@ main { padding: 32px; }
 input:checked + .slider { background-color: var(--primary-color); }
 input:checked + .slider:before { transform: translateX(24px); }
 
-@media (max-width: 1200px) {
-    .detail-grid { grid-template-columns: 1fr; }
-}
-@media (max-width: 900px) {
-    .app-container { grid-template-columns: 1fr; }
-    .sidebar { display: none; }
-    .log-panel { left: 0; }
-}
+/* Remove old card status styling */
+.card-header .status { display: none; }

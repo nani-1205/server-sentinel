@@ -51,31 +51,20 @@
                     <h2 id="detail-server-name">Server Details</h2>
                 </div>
                 <div class="detail-grid">
-                    <!-- Column 1: Server Info -->
                     <div class="card detail-info">
                         <h3>Server Info</h3>
                         <div id="detail-info-content"></div>
                          <button id="run-single-btn" class="btn btn-primary">Run Health Check</button>
                     </div>
-
-                    <!-- Column 2: A wrapper for both charts and metrics -->
-                    <div class="detail-main-panel">
-                        <div class="card detail-charts">
-                            <div class="charts-grid">
-                                <div class="chart-container">
-                                    <h3>CPU Usage (%)</h3>
-                                    <canvas id="cpuChart"></canvas>
-                                </div>
-                                <div class="chart-container">
-                                    <h3>Memory Usage (MB)</h3>
-                                    <canvas id="memChart"></canvas>
-                                </div>
+                    <div class="card detail-charts">
+                        <div class="charts-grid">
+                            <div class="chart-container">
+                                <h3>CPU Usage (%)</h3>
+                                <canvas id="cpuChart"></canvas>
                             </div>
-                        </div>
-                        <div class="card detail-metrics">
-                            <h3>Detailed Metrics</h3>
-                            <div id="detail-metrics-content">
-                                <p>Run a health check to see detailed metrics.</p>
+                            <div class="chart-container">
+                                <h3>Memory Usage (MB)</h3>
+                                <canvas id="memChart"></canvas>
                             </div>
                         </div>
                     </div>
@@ -84,13 +73,20 @@
         </div>
     </div>
 
-    <!-- LOG PANEL -->
-    <div class="log-panel">
-        <div class="log-header">
-            <span>Live Logs</span>
-            <button id="log-toggle-btn">_</button>
+    <!-- FLOATING LOG PANEL -->
+    <div id="log-widget-container">
+        <div id="log-window" class="log-window">
+            <div class="log-header">
+                <span>Live Logs</span>
+                <button id="log-close-btn">×</button>
+            </div>
+            <pre id="logs" class="log-content"></pre>
         </div>
-        <pre id="logs" class="log-content"></pre>
+        <button id="log-widget-btn" class="log-widget-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+            <span>Live Logs</span>
+            <span id="log-status-dot" class="log-status-dot"></span>
+        </button>
     </div>
 
     <script src="/static/js/app.js"></script>
