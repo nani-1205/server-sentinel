@@ -46,10 +46,7 @@ header h1 {
 
 main {
     display: grid;
-    /* --- FIX FOR RESIZE LOOP --- */
-    /* Give the left column a fixed width to prevent it from affecting the right column's layout */
     grid-template-columns: 400px 1fr;
-    /* --- END FIX --- */
     gap: 2rem;
 }
 
@@ -124,9 +121,10 @@ main {
 
 .chart-container {
     position: relative;
-    min-height: 300px;
+    min-height: 300px; 
     display: flex;
     flex-direction: column;
+    overflow: hidden; /* <-- THE FINAL FIX */
 }
 
 .chart-container h3 {
@@ -171,7 +169,7 @@ main {
 
 @media (max-width: 900px) {
     main {
-        grid-template-columns: 1fr; /* Stack columns on smaller screens */
+        grid-template-columns: 1fr;
     }
     .charts-grid {
         grid-template-columns: 1fr;
