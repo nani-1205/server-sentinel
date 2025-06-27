@@ -44,8 +44,8 @@ func FullProcess(serversToRun []config.Server, wsLog func(msg string)) {
 	}
 
 	mu.Lock()
-	// When updating, we should merge this with existing data or decide on a strategy.
-	// For now, we'll just overwrite with the latest run's data.
+	// This approach replaces the old report with the new one.
+	// A more advanced approach could merge results, but this is fine for now.
 	lastReportData = reports
 	mu.Unlock()
 
@@ -101,16 +101,18 @@ func HandleWebSocket(w http.ResponseWriter, r *http.Request) {
 
 		if msg.Action == "run" {
 			var serversToRun []config.Server
-			// If "all" is specified, or if the list is empty, run on all servers.
+			// If "all" is specified, or if the list is empty with action 'run-all', run on all servers.
 			if len(msg.Servers) == 0 || (len(msg.Servers) == 1 && msg.Servers[0] == "all") {
 				serversToRun = config.AppConfig.Servers
 			} else {
 				// Filter servers based on the names provided
-				for _, serverName := range msg.Servers {
-					for _, s := range config.AppConfig.Servers {
-						if s.Name == serverName {
-							serversToRun = append(serversToRun, s)
-						}
+				serverMap := make(map[string]bool)
+				for _, name := range msg.Servers {
+					serverMap[name] = true
+				}
+				for _, s := range config.AppConfig.Servers {
+					if serverMap[s.Name] {
+						serversToRun = append(serversToRun, s)
 					}
 				}
 			}
@@ -124,7 +126,9 @@ func HandleGetLatestReport(w http.ResponseWriter, r *http.Request) {
 	defer mu.Unlock()
 
 	if lastReportData == nil {
-		http.Error(w, "No report data available yet. Please run a check first.", http.StatusNotFound)
+		// Return an empty array instead of an error if no report exists yet
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte("[]"))
 		return
 	}
 
@@ -138,16 +142,23 @@ func HandleGetServerList(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(config.AppConfig.Servers)
 }
 
+// -- CORRECTED ROUTE SETUP --
 func SetupRoutes() {
+	// --- API Endpoints ---
+	// Register the most specific API routes first to ensure they are matched correctly.
+	http.HandleFunc("/api/servers", HandleGetServerList)
+	http.HandleFunc("/api/latest-report", HandleGetLatestReport)
+	http.HandleFunc("/ws/run", HandleWebSocket)
+
+	// --- Static File Serving ---
+	// The handler for static files (CSS, JS) comes after the API routes.
 	fs := http.FileServer(http.Dir("./static"))
 	http.Handle("/static/", http.StripPrefix("/static/", fs))
 
+	// --- Root Handler (Catch-All) ---
+	// This should be the last handler registered. It serves the main index.html for any
+	// route that wasn't matched above (e.g., the root "/" path).
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, "./static/index.html")
 	})
-
-	http.HandleFunc("/ws/run", HandleWebSocket)
-	http.HandleFunc("/api/latest-report", HandleGetLatestReport)
-	// Add the new API endpoint
-	http.HandleFunc("/api/servers", HandleGetServerList)
 }
