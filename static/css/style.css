@@ -132,36 +132,19 @@ main { padding: 32px; }
 .detail-header { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; }
 .detail-header h2 { margin: 0; }
 
-.detail-grid-container::after {
-    content: "";
-    display: table;
-    clear: both;
-}
 .detail-info {
-    float: left;
-    width: 33.33%;
-    padding-right: 24px;
-    box-sizing: border-box;
+    max-width: 800px; /* Give the info card a max width for readability */
 }
-.detail-charts {
-    float: left;
-    width: 66.67%;
-    box-sizing: border-box;
-}
-
 .detail-info h3 { margin-top: 0; }
 .detail-info-content p { margin: 8px 0; }
 .detail-info-content strong { color: var(--text-primary); }
-.detail-info-content pre { white-space: pre-wrap; word-break: break-all; }
-
-.charts-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 24px;
-}
-.chart-container {
-    height: 300px;
-    position: relative;
+.detail-info-content pre { 
+    white-space: pre-wrap; 
+    word-break: break-all; 
+    background-color: var(--bg-color);
+    padding: 10px;
+    border-radius: 4px;
+    margin-top: 5px;
 }
 
 .btn {
@@ -172,6 +155,7 @@ main { padding: 32px; }
     font-weight: 600;
     cursor: pointer;
     transition: background-color 0.2s;
+    margin-top: 16px;
 }
 .btn-primary { background-color: var(--primary-color); color: white; }
 .btn-primary:hover { background-color: var(--primary-variant-color); }
@@ -265,27 +249,3 @@ main { padding: 32px; }
 }
 input:checked + .slider { background-color: var(--primary-color); }
 input:checked + .slider:before { transform: translateX(24px); }
-
-.no-data-message {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    color: var(--text-secondary);
-    font-style: italic;
-    background-color: var(--surface-color);
-    border-radius: 8px;
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.3s;
-    z-index: 5;
-}
-
-.chart-container.no-data .no-data-message {
-    opacity: 1;
-    visibility: visible;
-}

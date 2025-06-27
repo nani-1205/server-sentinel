@@ -14,10 +14,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const backToDashboardBtn = document.getElementById('back-to-dashboard-btn');
     const detailServerName = document.getElementById('detail-server-name');
     const detailInfoContent = document.getElementById('detail-info-content');
-    const cpuChartCanvas = document.getElementById('cpuChart');
-    const memChartCanvas = document.getElementById('memChart');
 
-    let cpuChart, memChart;
+    // No longer need chart variables
     let servers = [];
     let latestReportData = [];
     let socket;
@@ -27,9 +25,6 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.classList.toggle('light-mode', isLight);
         themeToggle.checked = isLight;
         localStorage.setItem('theme', isLight ? 'light' : 'dark');
-        if (detailView.classList.contains('active')) {
-             populateDetailView(detailServerName.textContent);
-        }
     };
     const savedTheme = localStorage.getItem('theme') === 'light';
     setTheme(savedTheme);
@@ -107,42 +102,34 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const populateDetailView = (serverName) => {
         showView('detail-view');
-        
         const server = servers.find(s => s.name === serverName);
         if (!server) return;
 
         detailServerName.textContent = server.name;
         runSingleBtn.dataset.serverName = server.name;
         
-        // Use a single variable to track the report for clarity
         const serverReport = latestReportData.find(r => r.serverName === serverName);
-
-        // --- Start of The Fix ---
         
-        // Always destroy old charts
-        if (cpuChart) cpuChart.destroy();
-        if (memChart) memChart.destroy();
-
-        // Always clear and rebuild the info panel
-        detailInfoContent.innerHTML = `
-            <p><strong>Host:</strong> ${server.host}:${server.port}</p>
-            <p><strong>User:</strong> ${server.user}</p>
-        `;
-
         if (serverReport) {
-            // DATA FOUND: Append details and create new charts
-            detailInfoContent.innerHTML += `
+            // DATA FOUND: Build the full detailed view
+            detailInfoContent.innerHTML = `
+                <p><strong>Host:</strong> ${server.host}:${server.port}</p>
+                <p><strong>User:</strong> ${server.user}</p>
                 <hr>
                 <p><strong>Status:</strong> ${serverReport.isOnline ? 'Online' : 'Offline'}</p>
                 <p><strong>CPU Usage:</strong> ${serverReport.cpuUsage.toFixed(2)} %</p>
                 <p><strong>Memory:</strong> ${serverReport.memUsedMB} MB Used / ${serverReport.memTotalMB} MB Total</p>
                 <p><strong>Top Processes:</strong><pre>${serverReport.topProcesses}</pre></p>
             `;
-            // CORRECTED CHART CREATION CALLS
-            cpuChart = createChart(cpuChartCanvas, 'CPU', [serverReport.cpuUsage.toFixed(2)], '%');
-            memChart = createChart(memChartCanvas, 'Memory', [serverReport.memUsedMB], 'MB');
+        } else {
+            // NO DATA: Build a simple view
+            detailInfoContent.innerHTML = `
+                <p><strong>Host:</strong> ${server.host}:${server.port}</p>
+                <p><strong>User:</strong> ${server.user}</p>
+                <hr>
+                <p>No health report data available. Click "Run Health Check".</p>
+            `;
         }
-        // --- End of The Fix ---
     };
     
     const fetchLatestReport = async () => {
@@ -173,76 +160,6 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error('Failed to initialize dashboard:', error);
         }
     };
-
-    function createGradient(ctx, area, isCpu) {
-        const color1 = isCpu ? '#3a7bd5' : '#3ddc84';
-        const color2 = isCpu ? '#00d2ff' : '#00a9e0';
-        const gradient = ctx.createLinearGradient(0, area.bottom, 0, area.top);
-        gradient.addColorStop(0, color1);
-        gradient.addColorStop(1, color2);
-        return gradient;
-    }
-
-    // Updated createChart function to match the corrected call signature
-    function createChart(canvasEl, label, data, unit) {
-        const ctx = canvasEl.getContext('2d');
-        const isLightMode = document.body.classList.contains('light-mode');
-        const gridColor = isLightMode ? 'rgba(0, 0, 0, 0.1)' : 'rgba(255, 255, 255, 0.1)';
-        const textColor = isLightMode ? '#333' : '#ccc';
-
-        return new Chart(ctx, {
-            type: 'bar',
-            data: { 
-                labels: [label], // Uses the passed 'label' for the x-axis
-                datasets: [{ 
-                    label: `${label} Usage`,
-                    data: data, // Uses the passed 'data' for the bar height
-                    backgroundColor: (context) => createGradient(context.chart.ctx, context.chart.chartArea, label === 'CPU'),
-                    borderColor: 'rgba(255, 255, 255, 0.25)',
-                    borderWidth: 1,
-                    borderRadius: 5,
-                    borderSkipped: false,
-                    barPercentage: 0.5,
-                    categoryPercentage: 0.8
-                }] 
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                animation: { duration: 1000, easing: 'easeOutQuart' },
-                scales: { 
-                    y: { 
-                        beginAtZero: true,
-                        grid: { color: gridColor, drawBorder: false },
-                        ticks: { color: textColor, padding: 10, callback: function(value) { return value + ` ${unit}`; } }
-                    },
-                    x: {
-                        grid: { display: false },
-                        ticks: { color: textColor, font: { size: 14, weight: '600' } }
-                    }
-                },
-                plugins: { 
-                    legend: { display: false },
-                    tooltip: {
-                        enabled: true,
-                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                        titleFont: { size: 14, weight: 'bold' },
-                        bodyFont: { size: 12 },
-                        padding: 10,
-                        cornerRadius: 4,
-                        callbacks: {
-                            label: function(context) {
-                                return `${context.dataset.label}: ${context.raw} ${unit}`;
-                            }
-                        }
-                    }
-                },
-                onHover: (event, chartElement) => {
-                    event.native.target.style.cursor = chartElement[0] ? 'pointer' : 'default';
-                }
-            }
-        });
-    }
 
     // --- Initial Load ---
     initializeDashboard();

@@ -6,7 +6,7 @@
     <title>Server Sentinel Fleet</title>
     <link rel="stylesheet" href="/static/css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Chart.js script is no longer needed -->
 </head>
 <body>
     <div class="app-container">
@@ -50,26 +50,13 @@
                     <button id="back-to-dashboard-btn" class="btn btn-tertiary">← Back to Dashboard</button>
                     <h2 id="detail-server-name">Server Details</h2>
                 </div>
-                <div class="detail-grid-container">
-                    <div class="card detail-info">
-                        <h3>Server Info</h3>
-                        <div id="detail-info-content"></div>
-                         <button id="run-single-btn" class="btn btn-primary">Run Health Check</button>
+                <!-- The layout is now much simpler -->
+                <div class="card detail-info">
+                    <h3>Server Info</h3>
+                    <div id="detail-info-content">
+                        <!-- Detailed metrics will be injected here -->
                     </div>
-                    <div class="card detail-charts">
-                        <div class="charts-grid">
-                            <div class="chart-container">
-                                <h3>CPU Usage (%)</h3>
-                                <canvas id="cpuChart"></canvas>
-                                <div class="no-data-message">No data available. Run a health check.</div>
-                            </div>
-                            <div class="chart-container">
-                                <h3>Memory Usage (MB)</h3>
-                                <canvas id="memChart"></canvas>
-                                <div class="no-data-message">No data available. Run a health check.</div>
-                            </div>
-                        </div>
-                    </div>
+                     <button id="run-single-btn" class="btn btn-primary">Run Health Check</button>
                 </div>
             </main>
         </div>
