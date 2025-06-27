@@ -1,61 +1,85 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF--8">
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Server Sentinel</title>
+    <title>Server Sentinel Fleet</title>
     <link rel="stylesheet" href="/static/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>Server Sentinel</h1>
-            <p>Automated Health Checks & Reporting</p>
-        </header>
-
-        <main>
-            <div class="card control-panel">
-                <h2>Manual Control</h2>
-                <button id="run-manual-btn">Run Checks Manually</button>
-                <div class="logs-container">
-                    <h3>Live Logs</h3>
-                    <pre id="logs"></pre>
-                </div>
+    <div class="app-container">
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <img src="https://i.imgur.com/uB5k9M7.png" alt="Logo" class="logo">
+                <h1>Server Sentinel</h1>
             </div>
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item active" id="nav-dashboard"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg> <span>Dashboard</span></a>
+            </nav>
+        </aside>
 
-            <div class="card dashboard">
-                <h2>Latest Report</h2>
-                <div class="charts-grid">
-                    <div class="chart-container">
-                        <h3>CPU Usage (%)</h3>
-                        <canvas id="cpuChart"></canvas>
+        <!-- MAIN CONTENT -->
+        <div class="main-content">
+            <header class="header">
+                <div class="header-title">Fleet Dashboard</div>
+                <div class="header-actions">
+                    <label class="switch">
+                        <input type="checkbox" id="theme-toggle">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </header>
+
+            <!-- Dashboard View -->
+            <main id="dashboard-view" class="view active">
+                <div class="dashboard-actions">
+                    <button id="run-all-btn" class="btn btn-primary">Run All Checks</button>
+                    <button id="run-selected-btn" class="btn btn-secondary">Run Selected</button>
+                </div>
+                <div id="server-cards-container" class="server-cards-grid">
+                    <!-- Server cards will be injected here by JS -->
+                </div>
+            </main>
+
+            <!-- Detail View -->
+            <main id="detail-view" class="view">
+                <div class="detail-header">
+                    <button id="back-to-dashboard-btn" class="btn btn-tertiary">← Back to Dashboard</button>
+                    <h2 id="detail-server-name">Server Details</h2>
+                </div>
+                <div class="detail-grid">
+                    <div class="card detail-info">
+                        <h3>Server Info</h3>
+                        <div id="detail-info-content"></div>
+                         <button id="run-single-btn" class="btn btn-primary">Run Health Check</button>
                     </div>
-                    <div class="chart-container">
-                        <h3>Memory Usage (MB)</h3>
-                        <canvas id="memChart"></canvas>
+                    <div class="card detail-charts">
+                        <div class="charts-grid">
+                            <div class="chart-container">
+                                <h3>CPU Usage (%)</h3>
+                                <canvas id="cpuChart"></canvas>
+                            </div>
+                            <div class="chart-container">
+                                <h3>Memory Usage (MB)</h3>
+                                <canvas id="memChart"></canvas>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div class="table-container">
-                    <h3>Server Details</h3>
-                    <table id="detailsTable">
-                        <thead>
-                            <tr>
-                                <th>Server</th>
-                                <th>Status</th>
-                                <th>CPU %</th>
-                                <th>Mem Used</th>
-                                <th>Mem Free</th>
-                                <th>Top Process</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <!-- Data will be populated by JS -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </main>
+            </main>
+        </div>
+    </div>
+
+    <!-- LOG PANEL -->
+    <div class="log-panel">
+        <div class="log-header">
+            <span>Live Logs</span>
+            <button id="log-toggle-btn">_</button>
+        </div>
+        <pre id="logs" class="log-content"></pre>
     </div>
 
     <script src="/static/js/app.js"></script>

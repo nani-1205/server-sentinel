@@ -1,184 +1,210 @@
 :root {
-    --bg-color: #1a1a2e;
-    --card-bg: rgba(22, 22, 40, 0.6);
-    --primary-color: #0f3460;
-    --accent-color: #3f72af;
-    --text-color: #e4e4e4;
-    --border-color: rgba(255, 255, 255, 0.1);
-    --success-color: #4CAF50;
-    --warning-color: #ff9800;
-    --error-color: #f44336;
-}
+    --bg-dark: #121212;
+    --surface-dark: #1E1E1E;
+    --primary-dark: #6200EE;
+    --primary-variant-dark: #3700B3;
+    --secondary-dark: #03DAC6;
+    --text-primary-dark: #FFFFFF;
+    --text-secondary-dark: #B0B0B0;
+    --border-dark: #2c2c2c;
 
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
+    --bg-light: #F5F5F5;
+    --surface-light: #FFFFFF;
+    --primary-light: #6200EE;
+    --primary-variant-light: #3700B3;
+    --secondary-light: #018786;
+    --text-primary-light: #000000;
+    --text-secondary-light: #5f6368;
+    --border-light: #e0e0e0;
 }
 
 body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    --bg-color: var(--bg-dark);
+    --surface-color: var(--surface-dark);
+    --primary-color: var(--primary-dark);
+    --primary-variant-color: var(--primary-variant-dark);
+    --secondary-color: var(--secondary-dark);
+    --text-primary: var(--text-primary-dark);
+    --text-secondary: var(--text-secondary-dark);
+    --border-color: var(--border-dark);
+    font-family: 'Inter', sans-serif;
     background-color: var(--bg-color);
-    background-image: radial-gradient(circle, var(--primary-color) 0%, var(--bg-color) 60%);
-    color: var(--text-color);
-    line-height: 1.6;
-    padding: 2rem;
-    min-height: 100vh;
+    color: var(--text-primary);
+    margin: 0;
+    transition: background-color 0.3s, color 0.3s;
 }
 
-.container {
-    max-width: 1400px;
-    margin: auto;
+body.light-mode {
+    --bg-color: var(--bg-light);
+    --surface-color: var(--surface-light);
+    --primary-color: var(--primary-light);
+    --primary-variant-color: var(--primary-variant-light);
+    --secondary-color: var(--secondary-light);
+    --text-primary: var(--text-primary-light);
+    --text-secondary: var(--text-secondary-light);
+    --border-color: var(--border-light);
 }
 
-header {
-    text-align: center;
-    margin-bottom: 2rem;
-}
-
-header h1 {
-    font-size: 2.5rem;
-    margin-bottom: 0.5rem;
-    background: linear-gradient(45deg, #e4e4e4, var(--accent-color));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-}
-
-main {
+.app-container {
     display: grid;
-    grid-template-columns: 400px 1fr;
-    gap: 2rem;
-}
-
-.card {
-    background: var(--card-bg);
-    border: 1px solid var(--border-color);
-    border-radius: 15px;
-    padding: 1.5rem;
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-}
-
-.control-panel h2, .dashboard h2 {
-    margin-bottom: 1rem;
-    border-bottom: 1px solid var(--border-color);
-    padding-bottom: 0.5rem;
-}
-
-#run-manual-btn {
-    width: 100%;
-    padding: 0.8rem;
-    font-size: 1rem;
-    font-weight: bold;
-    color: #fff;
-    background: var(--accent-color);
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: background 0.3s ease;
-    margin-bottom: 1.5rem;
-}
-
-#run-manual-btn:hover {
-    background: #5a8bcd;
-}
-
-#run-manual-btn:disabled {
-    background-color: #555;
-    cursor: not-allowed;
-}
-
-.logs-container {
-    margin-top: 1rem;
-}
-
-#logs {
-    background: rgba(0, 0, 0, 0.3);
-    border-radius: 8px;
-    padding: 1rem;
-    height: 400px;
-    overflow-y: auto;
-    font-family: 'Fira Code', 'Courier New', Courier, monospace;
-    font-size: 0.85rem;
-    white-space: pre-wrap;
-    word-wrap: break-word;
-}
-
-#logs span { display: block; }
-#logs .success { color: var(--success-color); }
-#logs .warn { color: var(--warning-color); }
-#logs .error { color: var(--error-color); }
-#logs .info { color: var(--accent-color); }
-
-.charts-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1.5rem;
-    margin-bottom: 2rem;
-}
-
-.chart-container {
-    position: relative;
-    min-height: 300px; 
-    display: flex;
-    flex-direction: column;
+    grid-template-columns: 240px 1fr;
+    height: 100vh;
     overflow: hidden;
 }
 
-/* --- THE DEFINITIVE CSS GRID FIX --- */
-/* This rule tells grid items not to expand based on their content's minimum size,
-   which is the root cause of the feedback loop with Chart.js. */
-.charts-grid > .chart-container {
-    min-width: 0;
+/* Sidebar */
+.sidebar {
+    background-color: var(--surface-color);
+    border-right: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    transition: background-color 0.3s, border-color 0.3s;
 }
-/* --- END FIX --- */
-
-.chart-container h3 {
-    text-align: center;
-    margin-bottom: 1rem;
-    font-weight: 500;
-}
-
-.table-container {
-    margin-top: 1rem;
-    overflow-x: auto;
-}
-
-#detailsTable {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-#detailsTable th, #detailsTable td {
-    padding: 0.8rem;
-    text-align: left;
+.sidebar-header {
+    padding: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
     border-bottom: 1px solid var(--border-color);
 }
-
-#detailsTable thead {
-    background-color: rgba(255, 255, 255, 0.05);
+.logo { width: 32px; height: 32px; }
+.sidebar-header h1 { font-size: 1.25rem; margin: 0; }
+.sidebar-nav { padding: 16px; }
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 12px 16px;
+    border-radius: 8px;
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-weight: 500;
+    transition: background-color 0.2s, color 0.2s;
 }
-
-#detailsTable tbody tr:hover {
-    background-color: rgba(255, 255, 255, 0.1);
+.nav-item:hover { background-color: rgba(128, 128, 128, 0.1); }
+.nav-item.active {
+    background-color: var(--primary-variant-color);
+    color: white;
 }
+.nav-item svg { width: 20px; height: 20px; }
 
-#detailsTable .status-online {
-    color: var(--success-color);
-    font-weight: bold;
+/* Main Content */
+.main-content {
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    padding-bottom: 60px; /* Space for the log panel */
 }
+.header {
+    padding: 24px 32px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border-color);
+    background-color: var(--surface-color);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+.header-title { font-size: 1.5rem; font-weight: 600; }
 
-#detailsTable .status-offline {
-    color: var(--error-color);
-    font-weight: bold;
-}
+.view { display: none; }
+.view.active { display: block; }
+main { padding: 32px; }
 
-@media (max-width: 900px) {
-    main {
-        grid-template-columns: 1fr;
-    }
-    .charts-grid {
-        grid-template-columns: 1fr;
-    }
+/* Dashboard View */
+.dashboard-actions { display: flex; gap: 16px; margin-bottom: 24px; }
+.server-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 24px;
 }
+.card {
+    background-color: var(--surface-color);
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+    padding: 20px;
+    transition: all 0.2s ease-in-out;
+}
+.server-card { cursor: pointer; }
+.server-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
+.card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+.card-header h3 { margin: 0; font-size: 1.1rem; }
+.status { display: flex; align-items: center; gap: 8px; font-size: 0.9rem; font-weight: 500; }
+.status-dot { width: 10px; height: 10px; border-radius: 50%; }
+.status.online .status-dot { background-color: #28a745; }
+.status.offline .status-dot { background-color: #dc3545; }
+.card-body p { margin: 4px 0; color: var(--text-secondary); font-size: 0.9rem; }
+.card-footer { margin-top: 16px; display: flex; align-items: center; gap: 8px; }
+
+/* Detail View */
+.detail-header { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; }
+.detail-header h2 { margin: 0; }
+.detail-grid { display: grid; grid-template-columns: 1fr 2fr; gap: 24px; }
+.detail-info h3 { margin-top: 0; }
+.detail-info-content p { margin: 8px 0; }
+.detail-info-content strong { color: var(--text-primary); }
+.charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+.chart-container { min-height: 250px; position: relative; }
+
+/* Buttons */
+.btn {
+    padding: 10px 20px;
+    border-radius: 8px;
+    border: none;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+.btn-primary { background-color: var(--primary-color); color: white; }
+.btn-primary:hover { background-color: var(--primary-variant-color); }
+.btn-secondary { background-color: var(--surface-color); color: var(--text-primary); border: 1px solid var(--border-color); }
+.btn-secondary:hover { background-color: rgba(128, 128, 128, 0.1); }
+.btn-tertiary { background: none; color: var(--primary-color); padding: 0; }
+.btn:disabled { background-color: #555; cursor: not-allowed; }
+
+/* Log Panel */
+.log-panel {
+    position: fixed;
+    bottom: 0;
+    left: 240px;
+    right: 0;
+    background-color: var(--surface-color);
+    border-top: 1px solid var(--border-color);
+    z-index: 20;
+    transition: height 0.3s ease;
+}
+.log-header {
+    padding: 8px 16px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+}
+#log-toggle-btn { background: none; border: none; color: var(--text-secondary); cursor: pointer; font-size: 1.2rem; }
+.log-content {
+    height: 150px;
+    overflow-y: auto;
+    margin: 0;
+    padding: 16px;
+    background-color: var(--bg-color);
+    font-family: 'Fira Code', 'Courier New', monospace;
+    font-size: 0.85rem;
+    white-space: pre-wrap;
+}
+.log-panel.collapsed .log-content { display: none; }
+
+/* Theme Toggle Switch */
+.switch { position: relative; display: inline-block; width: 50px; height: 26px; }
+.switch input { opacity: 0; width: 0; height: 0; }
+.slider {
+    position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+    background-color: #ccc; transition: .4s; border-radius: 26px;
+}
+.slider:before {
+    position: absolute; content: ""; height: 20px; width: 20px; left: 3px; bottom: 3px;
+    background-color: white; transition: .4s; border-radius: 50%;
+}
+input:checked + .slider { background-color: var(--primary-color); }
+input:checked + .slider:before { transform: translateX(24px); }
