@@ -14,12 +14,12 @@ servers:
 smtp:
   host: "smtp.example.com"
   port: 587
-  username: "your-email@example.com"
-  password: "your-email-password" # For app passwords, use them here
-  from: "your-email@example.com"
+  username: "nani.y9966@gamil.com" # Use your email address
+  password: "sfjwjzerlgbegogf" # For app passwords, use them here
+  from: "nani.y9966@gmail.com"
   to:
-    - "recipient1@example.com"
-    - "recipient2@example.com"
+    - "prabhakararao.nandigrama@assettl.com"
+    # - "recipient2@example.com"
 
 # The private key for SSH authentication
 # Use an absolute path or a path relative to the executable
