@@ -131,13 +131,41 @@ main { padding: 32px; }
 
 .detail-header { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; }
 .detail-header h2 { margin: 0; }
-.detail-grid { display: grid; grid-template-columns: 1fr 2fr; gap: 24px; }
+
+/* === DEFINITIVE FIX FOR CHART GROWING BUG === */
+.detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 24px;
+    /* This stops grid items from stretching vertically, which is a key part of the bug */
+    align-items: start;
+}
+
+.detail-charts {
+    /* This gives the chart container a stable, fixed height, breaking the feedback loop */
+    height: 400px;
+    display: flex;
+    flex-direction: column;
+}
+/* === END FIX === */
+
 .detail-info h3 { margin-top: 0; }
 .detail-info-content p { margin: 8px 0; }
 .detail-info-content strong { color: var(--text-primary); }
-.charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+
+.charts-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    height: 100%; /* Make this grid fill its parent (.detail-charts) */
+}
 .charts-grid > .chart-container { min-width: 0; }
-.chart-container { min-height: 250px; position: relative; }
+.chart-container {
+    height: 100%; /* The chart container should fill the height of its grid cell */
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
 
 .btn {
     padding: 10px 20px;
