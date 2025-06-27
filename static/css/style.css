@@ -154,7 +154,6 @@ main { padding: 32px; }
 .detail-info-content strong { color: var(--text-primary); }
 .detail-info-content pre { white-space: pre-wrap; word-break: break-all; }
 
-
 .charts-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -268,14 +267,25 @@ input:checked + .slider { background-color: var(--primary-color); }
 input:checked + .slider:before { transform: translateX(24px); }
 
 .no-data-message {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100%;
     color: var(--text-secondary);
     font-style: italic;
-    background-color: rgba(128, 128, 128, 0.05);
+    background-color: var(--surface-color);
     border-radius: 8px;
-    padding: 20px;
-    box-sizing: border-box;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s;
+    z-index: 5;
+}
+
+.chart-container.no-data .no-data-message {
+    opacity: 1;
+    visibility: visible;
 }

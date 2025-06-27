@@ -27,7 +27,6 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.classList.toggle('light-mode', isLight);
         themeToggle.checked = isLight;
         localStorage.setItem('theme', isLight ? 'light' : 'dark');
-        // We need to redraw charts on theme change because grid/tick colors change
         if (detailView.classList.contains('active')) {
              populateDetailView(detailServerName.textContent);
         }
@@ -118,12 +117,14 @@ document.addEventListener('DOMContentLoaded', () => {
         if (cpuChart) cpuChart.destroy();
         if (memChart) memChart.destroy();
         
-        const serverReport = latestReportData.find(r => r.serverName === serverName);
-        
-        // Clear old detailed metrics
         const oldMetrics = detailInfoContent.querySelector('.detailed-metrics');
         if (oldMetrics) oldMetrics.remove();
 
+        cpuChartCanvas.parentElement.classList.remove('no-data');
+        memChartCanvas.parentElement.classList.remove('no-data');
+
+        const serverReport = latestReportData.find(r => r.serverName === serverName);
+        
         if (serverReport) {
             cpuChart = createChart(cpuChartCanvas, 'CPU', [serverReport.cpuUsage.toFixed(2)], '%');
             memChart = createChart(memChartCanvas, 'Memory', [serverReport.memUsedMB], 'MB');
@@ -139,9 +140,8 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
             detailInfoContent.appendChild(metricsDiv);
         } else {
-            // Show a "no data" message in the chart area
-            cpuChartCanvas.parentElement.innerHTML += '<div class="no-data-message">No data available. Run a health check.</div>';
-            memChartCanvas.parentElement.innerHTML += '<div class="no-data-message">No data available. Run a health check.</div>';
+            cpuChartCanvas.parentElement.classList.add('no-data');
+            memChartCanvas.parentElement.classList.add('no-data');
         }
     };
     
