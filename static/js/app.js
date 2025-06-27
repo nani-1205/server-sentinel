@@ -14,6 +14,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const backToDashboardBtn = document.getElementById('back-to-dashboard-btn');
     const detailServerName = document.getElementById('detail-server-name');
     const detailInfoContent = document.getElementById('detail-info-content');
+    const cpuChartCanvas = document.getElementById('cpuChart');
+    const memChartCanvas = document.getElementById('memChart');
 
     let cpuChart, memChart;
     let servers = [];
@@ -62,7 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 fetchLatestReport().then(() => {
                     if (detailView.classList.contains('active')) {
                         const serverName = detailServerName.textContent;
-                        populateDetailView(serverName, true);
+                        populateDetailView(serverName);
                     }
                 });
             }
@@ -113,35 +115,36 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>`;
 
     const populateDetailView = (serverName) => {
+        // *** THE CRITICAL FIX IS HERE ***
+        // 1. Make the view visible FIRST, so its containers have dimensions.
+        showView('detail-view');
+
         const server = servers.find(s => s.name === serverName);
         if (!server) return;
 
+        // 2. Update basic info
         detailServerName.textContent = server.name;
         detailInfoContent.innerHTML = `<p><strong>Host:</strong> ${server.host}:${server.port}</p><p><strong>User:</strong> ${server.user}</p>`;
         runSingleBtn.dataset.serverName = server.name;
 
-        // Clear previous charts
+        // 3. Destroy old charts to prevent memory leaks
         if (cpuChart) cpuChart.destroy();
         if (memChart) memChart.destroy();
-        detailInfoContent.querySelector('.detailed-metrics')?.remove();
         
+        // 4. Find the data and create new charts now that the canvas is visible
         const serverReport = latestReportData.find(r => r.serverName === serverName);
         if (serverReport) {
-            cpuChart = createChart('cpuChart', 'bar', [serverReport.serverName], 'CPU Usage %', [serverReport.cpuUsage.toFixed(2)], 'rgba(62, 123, 225, 0.6)');
-            memChart = createChart('memChart', 'bar', [serverReport.serverName], 'Memory Used (MB)', [serverReport.memUsedMB], 'rgba(76, 175, 80, 0.6)');
+            cpuChart = createChart(cpuChartCanvas, 'bar', [serverReport.serverName], 'CPU Usage %', [serverReport.cpuUsage.toFixed(2)], 'rgba(62, 123, 225, 0.6)');
+            memChart = createChart(memChartCanvas, 'bar', [serverReport.serverName], 'Memory Used (MB)', [serverReport.memUsedMB], 'rgba(76, 175, 80, 0.6)');
             
-            const metricsDiv = document.createElement('div');
-            metricsDiv.className = 'detailed-metrics';
-            metricsDiv.innerHTML = `
+            detailInfoContent.innerHTML += `
                 <hr>
                 <p><strong>Status:</strong> ${serverReport.isOnline ? 'Online' : 'Offline'}</p>
                 <p><strong>CPU Usage:</strong> ${serverReport.cpuUsage.toFixed(2)} %</p>
                 <p><strong>Memory:</strong> ${serverReport.memUsedMB} MB Used / ${serverReport.memTotalMB} MB Total</p>
                 <p><strong>Top Processes:</strong><pre>${serverReport.topProcesses}</pre></p>
             `;
-            detailInfoContent.appendChild(metricsDiv);
         }
-        showView('detail-view');
     };
     
     const fetchLatestReport = async () => {
@@ -173,15 +176,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    function createChart(canvasId, type, labels, label, data, color) {
-        const ctx = document.getElementById(canvasId).getContext('2d');
-        return new Chart(ctx, {
+    function createChart(canvasEl, type, labels, label, data, color) {
+        return new Chart(canvasEl, {
             type: type,
             data: { labels: labels, datasets: [{ label: label, data: data, backgroundColor: color }] },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                onResize: null,
+                animation: true, // Re-enable animation for a nice effect
                 scales: { y: { beginAtZero: true } },
                 plugins: { legend: { display: false } }
             }

@@ -155,7 +155,6 @@ main { padding: 32px; }
 .btn-tertiary { background: none; color: var(--primary-color); padding: 0; }
 .btn:disabled { background-color: #555; cursor: not-allowed; }
 
-/* New Floating Log Widget CSS */
 #log-widget-container {
     position: fixed;
     bottom: 24px;
@@ -229,7 +228,6 @@ main { padding: 32px; }
     white-space: pre-wrap;
 }
 
-/* Theme Toggle Switch */
 .switch { position: relative; display: inline-block; width: 50px; height: 26px; }
 .switch input { opacity: 0; width: 0; height: 0; }
 .slider {
@@ -242,6 +240,3 @@ main { padding: 32px; }
 }
 input:checked + .slider { background-color: var(--primary-color); }
 input:checked + .slider:before { transform: translateX(24px); }
-
-/* Remove old card status styling */
-.card-header .status { display: none; }
