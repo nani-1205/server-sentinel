@@ -49,16 +49,6 @@ document.addEventListener('DOMContentLoaded', () => {
         socket.onmessage = (event) => {
             const msg = event.data;
             logMessage(msg);
-
-            const match = msg.match(/\[(.*?)\]/);
-            if (match && match[1]) {
-                const serverName = match[1];
-                const card = document.querySelector(`.server-card[data-server-name="${serverName}"]`);
-                if (card) {
-                    const statusEl = card.querySelector('.card-status');
-                    statusEl.textContent = msg.split(']').pop().trim();
-                }
-            }
             if (msg.includes('🏁 Process complete.')) {
                 enableAllButtons();
                 fetchLatestReport().then(() => {
@@ -89,8 +79,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Core Functions ---
     const runChecks = (serverList) => {
         if (socket && socket.readyState === WebSocket.OPEN) {
-            const message = { action: 'run', servers: serverList };
-            socket.send(JSON.stringify(message));
+            socket.send(JSON.stringify({ action: 'run', servers: serverList }));
             disableAllButtons();
         } else {
             alert('WebSocket is not connected.');
@@ -124,15 +113,19 @@ document.addEventListener('DOMContentLoaded', () => {
         detailInfoContent.innerHTML = `<p><strong>Host:</strong> ${server.host}:${server.port}</p><p><strong>User:</strong> ${server.user}</p>`;
         runSingleBtn.dataset.serverName = server.name;
 
+        // *** THE ULTIMATE FIX ***
+        // 1. Force a fixed height on the chart containers to prevent layout loops.
+        // We do this here to ensure the elements are visible and can be styled.
+        cpuChartCanvas.parentElement.style.height = '300px';
+        memChartCanvas.parentElement.style.height = '300px';
+
         if (cpuChart) cpuChart.destroy();
         if (memChart) memChart.destroy();
         
         const serverReport = latestReportData.find(r => r.serverName === serverName);
         if (serverReport) {
-            // *** THE CRITICAL FIX IS HERE ***
-            // Ensure all property names match the Go struct's JSON tags exactly.
-            cpuChart = createChart(cpuChartCanvas, 'bar', [serverReport.serverName], 'CPU Usage %', [serverReport.cpuUsage.toFixed(2)], 'rgba(62, 123, 225, 0.6)');
-            memChart = createChart(memChartCanvas, 'bar', [serverReport.serverName], 'Memory Used (MB)', [serverReport.memUsedMB], 'rgba(76, 175, 80, 0.6)');
+            cpuChart = createChart(cpuChartCanvas, 'bar', [serverReport.cpuUsage.toFixed(2)]);
+            memChart = createChart(memChartCanvas, 'bar', [serverReport.memUsedMB]);
             
             detailInfoContent.innerHTML += `
                 <hr>
@@ -173,14 +166,21 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    function createChart(canvasEl, type, labels, label, data, color) {
+    function createChart(canvasEl, type, data) {
         return new Chart(canvasEl, {
             type: type,
-            data: { labels: labels, datasets: [{ label: label, data: data, backgroundColor: color }] },
+            data: { 
+                labels: [''], // Single blank label
+                datasets: [{ 
+                    data: data, 
+                    backgroundColor: type === 'bar' ? 'rgba(62, 123, 225, 0.6)' : 'rgba(76, 175, 80, 0.6)',
+                    borderColor: type === 'bar' ? 'rgba(62, 123, 225, 1)' : 'rgba(76, 175, 80, 1)',
+                    borderWidth: 1
+                }] 
+            },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                animation: true,
                 scales: { y: { beginAtZero: true } },
                 plugins: { legend: { display: false } }
             }
