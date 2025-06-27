@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt" // <-- This was the missing import
 	"log"
 	"net/http"
 	"server-sentinel/reporting"
@@ -21,7 +22,7 @@ var (
 	mu             sync.Mutex
 )
 
-// Main function that is called by scheduler and manual trigger
+// FullProcess is the main function that is called by the scheduler and manual trigger
 func FullProcess(wsLog func(msg string)) {
 	wsLog("🚀 Starting health check process...")
 	reports := serverops.RunAllChecks(wsLog)
@@ -66,9 +67,15 @@ func HandleWebSocket(w http.ResponseWriter, r *http.Request) {
 
 	for {
 		// We can add more complex communication, but for now, we just trigger the run
+		// when we receive any message from the client.
 		_, _, err := conn.ReadMessage()
 		if err != nil {
-			log.Println("WS read error:", err)
+			// This is expected when the client closes the connection
+			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
+				log.Printf("WS read error: %v", err)
+			} else {
+				log.Printf("Client disconnected from WebSocket.")
+			}
 			break
 		}
 		
