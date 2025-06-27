@@ -14,20 +14,21 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
+// HealthReport struct with json tags for proper serialization to the frontend
 type HealthReport struct {
-	ServerName      string
-	ServerHost      string
-	IsOnline        bool
-	Error           string
-	CacheCleared    bool
-	CPUUsage        float64
-	MemTotalMB      int
-	MemUsedMB       int
-	MemFreeMB       int
-	SwapTotalMB     int
-	SwapUsedMB      int
-	TopProcesses    string
-	Timestamp       string
+	ServerName   string  `json:"serverName"`
+	ServerHost   string  `json:"serverHost"`
+	IsOnline     bool    `json:"isOnline"`
+	Error        string  `json:"error"`
+	CacheCleared bool    `json:"cacheCleared"`
+	CPUUsage     float64 `json:"cpuUsage"`
+	MemTotalMB   int     `json:"memTotalMB"`
+	MemUsedMB    int     `json:"memUsedMB"`
+	MemFreeMB    int     `json:"memFreeMB"`
+	SwapTotalMB  int     `json:"swapTotalMB"`
+	SwapUsedMB   int     `json:"swapUsedMB"`
+	TopProcesses string  `json:"topProcesses"`
+	Timestamp    string  `json:"timestamp"`
 }
 
 func getSigner(keyPath string) (ssh.Signer, error) {
@@ -84,7 +85,11 @@ func executeSSH(s config.Server, cmd string) (string, error) {
 }
 
 func PerformHealthCheck(server config.Server, wsLog func(msg string)) HealthReport {
-	report := HealthReport{ServerName: server.Name, Timestamp: time.Now().Format(time.RFC3339)}
+	report := HealthReport{
+		ServerName: server.Name,
+		ServerHost: server.Host,
+		Timestamp:  time.Now().Format(time.RFC3339),
+	}
 
 	// 1. Check if server is online
 	wsLog(fmt.Sprintf("[%s] Pinging server...", server.Name))
@@ -100,7 +105,6 @@ func PerformHealthCheck(server config.Server, wsLog func(msg string)) HealthRepo
 	report.IsOnline = true
 	wsLog(fmt.Sprintf("[%s] ✅ Server is online.", server.Name))
 
-
 	// 2. Clear Cache (requires sudo NOPASSWD setup)
 	wsLog(fmt.Sprintf("[%s] Attempting to clear cache...", server.Name))
 	_, err = executeSSH(server, "sudo /bin/sh -c 'echo 3 > /proc/sys/vm/drop_caches'")
@@ -114,7 +118,7 @@ func PerformHealthCheck(server config.Server, wsLog func(msg string)) HealthRepo
 
 	// 3. Get Health Metrics
 	wsLog(fmt.Sprintf("[%s] Fetching health metrics...", server.Name))
-	
+
 	// CPU Usage
 	cpuCmd := "top -bn1 | grep 'Cpu(s)' | sed 's/.*, *\\([0-9.]*\\)%* id.*/\\1/' | awk '{print 100 - $1}'"
 	cpuOut, err := executeSSH(server, cpuCmd)
@@ -145,7 +149,7 @@ func PerformHealthCheck(server config.Server, wsLog func(msg string)) HealthRepo
 			}
 		}
 	}
-	
+
 	// Top 5 processes by memory
 	procCmd := "ps -eo comm,pmem --sort=-pmem | head -n 6"
 	procOut, err := executeSSH(server, procCmd)
@@ -161,10 +165,10 @@ func PerformHealthCheck(server config.Server, wsLog func(msg string)) HealthRepo
 func RunAllChecks(wsLog func(msg string)) []HealthReport {
 	servers := config.AppConfig.Servers
 	reports := make([]HealthReport, len(servers))
-	
+
 	for i, server := range servers {
 		reports[i] = PerformHealthCheck(server, wsLog)
 	}
-	
+
 	return reports
 }

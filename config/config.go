@@ -7,11 +7,12 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+// Server struct with both yaml and json tags for proper serialization
 type Server struct {
-	Name string `yaml:"name"`
-	Host string `yaml:"host"`
-	Port int    `yaml:"port"`
-	User string `yaml:"user"`
+	Name string `yaml:"name" json:"name"`
+	Host string `yaml:"host" json:"host"`
+	Port int    `yaml:"port" json:"port"`
+	User string `yaml:"user" json:"user"`
 }
 
 type SMTP struct {

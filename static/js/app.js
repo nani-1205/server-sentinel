@@ -38,9 +38,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- WebSocket ---
     const connectWebSocket = () => {
         socket = new WebSocket(`ws://${window.location.host}/ws/run`);
-        socket.onopen = () => logMessage('✅ WebSocket connection established.', 'success');
+        socket.onopen = () => logMessage('✅ WebSocket connection established.');
         socket.onclose = () => {
-            logMessage('⚠️ WebSocket connection closed. Reconnecting...', 'warn');
+            logMessage('⚠️ WebSocket connection closed. Reconnecting...');
             setTimeout(connectWebSocket, 3000);
         };
         socket.onmessage = (event) => {
@@ -100,7 +100,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const renderServerCard = (server) => `
         <div class="card server-card" data-server-name="${server.name}">
-            <div class="card-header"><h3>${server.name}</h3></div>
+            <div class="card-header">
+                <h3>${server.name}</h3>
+                <div class="status online">
+                    <div class="status-dot"></div>
+                    <span>Online</span>
+                </div>
+            </div>
             <div class="card-body">
                 <p><strong>Host:</strong> ${server.host}</p>
                 <p><strong>User:</strong> ${server.user}</p>
@@ -120,24 +126,28 @@ document.addEventListener('DOMContentLoaded', () => {
         runSingleBtn.dataset.serverName = server.name;
 
         // Find the data for this specific server from the last report
-        const serverReport = latestReportData.find(r => r.ServerName === serverName);
+        const serverReport = latestReportData.find(r => r.serverName === serverName);
         if (serverReport) {
             // Update CPU Chart
             if (cpuChart) cpuChart.destroy();
-            cpuChart = createChart('cpuChart', 'bar', [serverReport.ServerName], 'CPU Usage %', [serverReport.CPUUsage.toFixed(2)], 'rgba(62, 123, 225, 0.6)');
+            cpuChart = createChart('cpuChart', 'bar', [serverReport.serverName], 'CPU Usage %', [serverReport.cpuUsage.toFixed(2)], 'rgba(62, 123, 225, 0.6)');
             
             // Update Memory Chart
             if (memChart) memChart.destroy();
-            memChart = createChart('memChart', 'bar', [serverReport.ServerName], 'Memory Used (MB)', [serverReport.MemUsedMB], 'rgba(76, 175, 80, 0.6)');
+            memChart = createChart('memChart', 'bar', [serverReport.serverName], 'Memory Used (MB)', [serverReport.memUsedMB], 'rgba(76, 175, 80, 0.6)');
 
             // Add detailed metrics to the info box
             detailInfoContent.innerHTML += `
                 <hr>
-                <p><strong>Status:</strong> ${serverReport.IsOnline ? 'Online' : 'Offline'}</p>
-                <p><strong>CPU Usage:</strong> ${serverReport.CPUUsage.toFixed(2)} %</p>
-                <p><strong>Memory:</strong> ${serverReport.MemUsedMB} MB Used / ${serverReport.MemTotalMB} MB Total</p>
-                <p><strong>Top Processes:</strong><pre>${serverReport.TopProcesses}</pre></p>
+                <p><strong>Status:</strong> ${serverReport.isOnline ? 'Online' : 'Offline'}</p>
+                <p><strong>CPU Usage:</strong> ${serverReport.cpuUsage.toFixed(2)} %</p>
+                <p><strong>Memory:</strong> ${serverReport.memUsedMB} MB Used / ${serverReport.memTotalMB} MB Total</p>
+                <p><strong>Top Processes:</strong><pre>${serverReport.topProcesses}</pre></p>
             `;
+        } else {
+             // Clear charts if no data is available
+            if (cpuChart) cpuChart.destroy();
+            if (memChart) memChart.destroy();
         }
 
         showView('detail-view');
@@ -147,8 +157,10 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const response = await fetch('/api/latest-report');
             if (response.ok) latestReportData = await response.json();
+            else latestReportData = []; // Clear data if fetch fails
         } catch (error) {
             console.error('Failed to fetch latest report:', error);
+            latestReportData = [];
         }
     };
 
