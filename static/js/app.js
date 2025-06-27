@@ -76,8 +76,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             const data = await response.json();
             updateDashboard(data);
-        } catch (error)
-        {
+        } catch (error) {
             logMessage(`Error fetching report: ${error.message}`, 'error');
         }
     }
@@ -112,6 +111,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td><pre>${server.TopProcesses.split('\n').slice(1).join('\n')}</pre></td>
             `;
         });
+        
+        // Failsafe to ensure chart containers have a stable height.
+        // This runs after the charts are created and overrides any lingering CSS issues.
+        setTimeout(() => {
+            document.querySelectorAll('.chart-container').forEach(container => {
+                container.style.height = '300px';
+            });
+        }, 100);
     }
 
     function createChart(canvasId, type, labels, label, data, color) {
@@ -131,10 +138,7 @@ document.addEventListener('DOMContentLoaded', () => {
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                // --- FIX FOR RESIZE LOOP ---
-                // This tells Chart.js not to listen for resize events after the initial draw.
                 onResize: null,
-                // --- END FIX ---
                 scales: {
                     y: {
                         beginAtZero: true,

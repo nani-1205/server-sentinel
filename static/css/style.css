@@ -105,7 +105,6 @@ main {
     word-wrap: break-word;
 }
 
-/* Style log messages */
 #logs span { display: block; }
 #logs .success { color: var(--success-color); }
 #logs .warn { color: var(--warning-color); }
@@ -124,8 +123,16 @@ main {
     min-height: 300px; 
     display: flex;
     flex-direction: column;
-    overflow: hidden; /* <-- THE FINAL FIX */
+    overflow: hidden;
 }
+
+/* --- THE DEFINITIVE CSS GRID FIX --- */
+/* This rule tells grid items not to expand based on their content's minimum size,
+   which is the root cause of the feedback loop with Chart.js. */
+.charts-grid > .chart-container {
+    min-width: 0;
+}
+/* --- END FIX --- */
 
 .chart-container h3 {
     text-align: center;
