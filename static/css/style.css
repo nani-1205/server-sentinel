@@ -133,7 +133,8 @@ main { padding: 32px; }
 
 .detail-header { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; }
 .detail-header h2 { margin: 0; }
-.detail-grid { display: grid; grid-template-columns: 1fr 1.5fr 1.5fr; gap: 24px; } /* Adjusted for 3 columns */
+.detail-grid { display: grid; grid-template-columns: 1fr 1.5fr 1.5fr; gap: 24px; }
+.detail-grid > .card { min-width: 0; } /* THE DEFINITIVE FIX */
 .detail-info h3, .detail-charts h3, .detail-metrics h3 { margin-top: 0; margin-bottom: 16px; }
 .detail-info-content p { margin: 8px 0; }
 .detail-info-content strong { color: var(--text-primary); }
