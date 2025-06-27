@@ -7,12 +7,16 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-// Server struct with both yaml and json tags for proper serialization
+// Server struct now includes optional Password and KeyPath fields.
+// The `json:"-"` tag is a security measure to prevent these sensitive fields
+// from ever being sent to the frontend API.
 type Server struct {
-	Name string `yaml:"name" json:"name"`
-	Host string `yaml:"host" json:"host"`
-	Port int    `yaml:"port" json:"port"`
-	User string `yaml:"user" json:"user"`
+	Name     string `yaml:"name" json:"name"`
+	Host     string `yaml:"host" json:"host"`
+	Port     int    `yaml:"port" json:"port"`
+	User     string `yaml:"user" json:"user"`
+	Password string `yaml:"password,omitempty" json:"-"`
+	KeyPath  string `yaml:"key_path,omitempty" json:"-"`
 }
 
 type SMTP struct {
@@ -24,10 +28,10 @@ type SMTP struct {
 	To       []string `yaml:"to"`
 }
 
+// Config struct no longer has a global SSHKeyPath.
 type Config struct {
-	Servers    []Server `yaml:"servers"`
-	SMTP       SMTP     `yaml:"smtp"`
-	SSHKeyPath string   `yaml:"ssh_key_path"`
+	Servers []Server `yaml:"servers"`
+	SMTP    SMTP     `yaml:"smtp"`
 }
 
 var AppConfig Config

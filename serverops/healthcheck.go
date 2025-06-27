@@ -1,6 +1,7 @@
 package serverops
 
 import (
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net"
@@ -14,7 +15,6 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
-// HealthReport struct with json tags for proper serialization to the frontend
 type HealthReport struct {
 	ServerName   string  `json:"serverName"`
 	ServerHost   string  `json:"serverHost"`
@@ -32,7 +32,6 @@ type HealthReport struct {
 }
 
 func getSigner(keyPath string) (ssh.Signer, error) {
-	// Expand tilde
 	if strings.HasPrefix(keyPath, "~/") {
 		home, err := os.UserHomeDir()
 		if err != nil {
@@ -43,23 +42,34 @@ func getSigner(keyPath string) (ssh.Signer, error) {
 
 	key, err := ioutil.ReadFile(keyPath)
 	if err != nil {
-		return nil, fmt.Errorf("unable to read private key: %w", err)
+		return nil, fmt.Errorf("unable to read private key from %s: %w", keyPath, err)
 	}
 	return ssh.ParsePrivateKey(key)
 }
 
+// This function is now updated to handle both password and key authentication.
 func executeSSH(s config.Server, cmd string) (string, error) {
-	signer, err := getSigner(config.AppConfig.SSHKeyPath)
-	if err != nil {
-		return "", err
+	var authMethods []ssh.AuthMethod
+
+	// Check for password first. If it exists, use it.
+	if s.Password != "" {
+		authMethods = append(authMethods, ssh.Password(s.Password))
+	} else if s.KeyPath != "" {
+		// If no password, check for a key path.
+		signer, err := getSigner(s.KeyPath)
+		if err != nil {
+			return "", fmt.Errorf("failed to process key %s: %w", s.KeyPath, err)
+		}
+		authMethods = append(authMethods, ssh.PublicKeys(signer))
+	} else {
+		// If neither is provided, return an error.
+		return "", errors.New("no authentication method (password or key_path) provided for server")
 	}
 
 	sshConfig := &ssh.ClientConfig{
 		User: s.User,
-		Auth: []ssh.AuthMethod{
-			ssh.PublicKeys(signer),
-		},
-		HostKeyCallback: ssh.InsecureIgnoreHostKey(), // Note: In production, use a proper host key callback
+		Auth: authMethods,
+		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
 		Timeout:         10 * time.Second,
 	}
 
@@ -131,7 +141,6 @@ func PerformHealthCheck(server config.Server, wsLog func(msg string)) HealthRepo
 	memOut, err := executeSSH(server, memCmd)
 	if err == nil {
 		lines := strings.Split(memOut, "\n")
-		// Mem:      total   used    free
 		if len(lines) > 1 {
 			fields := strings.Fields(lines[1])
 			if len(fields) >= 4 {
@@ -140,7 +149,6 @@ func PerformHealthCheck(server config.Server, wsLog func(msg string)) HealthRepo
 				report.MemFreeMB, _ = strconv.Atoi(fields[3])
 			}
 		}
-		// Swap:     total   used    free
 		if len(lines) > 2 {
 			fields := strings.Fields(lines[2])
 			if len(fields) >= 3 {
@@ -161,14 +169,11 @@ func PerformHealthCheck(server config.Server, wsLog func(msg string)) HealthRepo
 	return report
 }
 
-// Global function to run all checks
 func RunAllChecks(wsLog func(msg string)) []HealthReport {
 	servers := config.AppConfig.Servers
 	reports := make([]HealthReport, len(servers))
-
 	for i, server := range servers {
 		reports[i] = PerformHealthCheck(server, wsLog)
 	}
-
 	return reports
 }

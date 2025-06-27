@@ -1,26 +1,34 @@
 # List of servers to monitor
 servers:
-  - name: "Web Server 01"
+  # This server uses an SSH key for authentication
+  - name: "Web Server 01 (Key Auth)"
     host: "18.60.39.71"
     port: 22
     user: "ec2-user"
-  # - name: "DB Server"
-  #   host: "192.168.1.11"
-  #   port: 22
-  #   user: "your_user"
-  # Add more servers here
+    key_path: "/tmp/HYD.pem" # Specify the key path for this server
+
+  # This server uses a password for authentication
+  - name: "DB Server (Password Auth)"
+    host: "192.168.1.11" # Replace with your server's IP
+    port: 22
+    user: "your_db_user" # Replace with your username for this server
+    password: "Your_DB_Server_Password123" # Specify the password for this server
+
+  # You can add more servers, each with either a key_path or a password.
+  - name: "Staging Server (Password Auth)"
+    host: "192.168.1.12"
+    port: 22
+    user: "staging_user"
+    password: "AnotherPassword"
 
 # SMTP settings for sending email reports
 smtp:
-  host: "smtp.gmail.com" # Use your SMTP server
+  host: "smtp.gmail.com"
   port: 587
-  username: "nani.y9966@gmail.com" # Use your email address
-  password: "" # For app passwords, use them here
+  username: "nani.y9966@gmail.com"
+  password: "your-google-app-password" # Make sure this is your app password
   from: "nani.y9966@gmail.com"
   to:
     - "prabhakararao.nandigrama@assettl.com"
-    # - "recipient2@example.com"
 
-# The private key for SSH authentication
-# Use an absolute path or a path relative to the executable
-ssh_key_path: "/tmp/HYD.pem"
+# The global ssh_key_path is no longer used and can be deleted from this file.
