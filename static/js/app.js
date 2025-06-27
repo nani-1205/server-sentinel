@@ -49,6 +49,7 @@ document.addEventListener('DOMContentLoaded', () => {
         socket.onmessage = (event) => {
             const msg = event.data;
             logMessage(msg);
+
             if (msg.includes('🏁 Process complete.')) {
                 enableAllButtons();
                 fetchLatestReport().then(() => {
@@ -105,19 +106,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const populateDetailView = (serverName) => {
         showView('detail-view');
-
+        
         const server = servers.find(s => s.name === serverName);
         if (!server) return;
 
         detailServerName.textContent = server.name;
         detailInfoContent.innerHTML = `<p><strong>Host:</strong> ${server.host}:${server.port}</p><p><strong>User:</strong> ${server.user}</p>`;
         runSingleBtn.dataset.serverName = server.name;
-
-        // *** THE ULTIMATE FIX ***
-        // 1. Force a fixed height on the chart containers to prevent layout loops.
-        // We do this here to ensure the elements are visible and can be styled.
-        cpuChartCanvas.parentElement.style.height = '300px';
-        memChartCanvas.parentElement.style.height = '300px';
 
         if (cpuChart) cpuChart.destroy();
         if (memChart) memChart.destroy();
@@ -173,14 +168,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 labels: [''], // Single blank label
                 datasets: [{ 
                     data: data, 
-                    backgroundColor: type === 'bar' ? 'rgba(62, 123, 225, 0.6)' : 'rgba(76, 175, 80, 0.6)',
-                    borderColor: type === 'bar' ? 'rgba(62, 123, 225, 1)' : 'rgba(76, 175, 80, 1)',
+                    backgroundColor: canvasEl.id === 'cpuChart' ? 'rgba(62, 123, 225, 0.6)' : 'rgba(76, 175, 80, 0.6)',
+                    borderColor: canvasEl.id === 'cpuChart' ? 'rgba(62, 123, 225, 1)' : 'rgba(76, 175, 80, 1)',
                     borderWidth: 1
                 }] 
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                animation: true,
                 scales: { y: { beginAtZero: true } },
                 plugins: { legend: { display: false } }
             }

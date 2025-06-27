@@ -132,22 +132,24 @@ main { padding: 32px; }
 .detail-header { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; }
 .detail-header h2 { margin: 0; }
 
-/* === DEFINITIVE FIX FOR CHART GROWING BUG === */
-.detail-grid {
-    display: grid;
-    grid-template-columns: 1fr 2fr;
-    gap: 24px;
-    /* This stops grid items from stretching vertically, which is a key part of the bug */
-    align-items: start;
+/* === NEW STABLE LAYOUT FOR THE DETAIL VIEW === */
+.detail-grid-container::after {
+    content: "";
+    display: table;
+    clear: both;
 }
-
+.detail-info {
+    float: left;
+    width: 33.33%;
+    padding-right: 24px;
+    box-sizing: border-box;
+}
 .detail-charts {
-    /* This gives the chart container a stable, fixed height, breaking the feedback loop */
-    height: 400px;
-    display: flex;
-    flex-direction: column;
+    float: left;
+    width: 66.67%;
+    box-sizing: border-box;
 }
-/* === END FIX === */
+/* === END NEW LAYOUT === */
 
 .detail-info h3 { margin-top: 0; }
 .detail-info-content p { margin: 8px 0; }
@@ -157,14 +159,10 @@ main { padding: 32px; }
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 24px;
-    height: 100%; /* Make this grid fill its parent (.detail-charts) */
 }
-.charts-grid > .chart-container { min-width: 0; }
 .chart-container {
-    height: 100%; /* The chart container should fill the height of its grid cell */
+    height: 300px; /* Give the container a fixed height */
     position: relative;
-    display: flex;
-    flex-direction: column;
 }
 
 .btn {
