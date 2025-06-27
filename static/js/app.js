@@ -20,14 +20,14 @@ document.addEventListener('DOMContentLoaded', () => {
     let socket;
 
     // --- Theme Manager ---
-    const setTema = (isLight) => {
+    const setTheme = (isLight) => {
         document.body.classList.toggle('light-mode', isLight);
         themeToggle.checked = isLight;
         localStorage.setItem('theme', isLight ? 'light' : 'dark');
     };
     const savedTheme = localStorage.getItem('theme') === 'light';
-    setTema(savedTheme);
-    themeToggle.addEventListener('change', () => setTema(themeToggle.checked));
+    setTheme(savedTheme);
+    themeToggle.addEventListener('change', () => setTheme(themeToggle.checked));
 
     // --- View Manager ---
     const showView = (viewId) => {
@@ -59,6 +59,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             if (msg.includes('🏁 Process complete.')) {
                 enableAllButtons();
+                // Optionally refresh latest report data here
+                // fetchLatestReportData(); 
             }
         };
     };
@@ -77,7 +79,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const serverName = runSingleBtn.dataset.serverName;
         if (serverName) runChecks([serverName]);
     });
-    backToDashboard-btn.addEventListener('click', () => showView('dashboard-view'));
+    backToDashboardBtn.addEventListener('click', () => showView('dashboard-view'));
     logToggleBtn.addEventListener('click', () => logPanel.classList.toggle('collapsed'));
 
     // --- Core Functions ---
@@ -99,28 +101,29 @@ document.addEventListener('DOMContentLoaded', () => {
         [runAllBtn, runSelectedBtn, runSingleBtn].forEach(btn => btn.disabled = false);
     };
 
-    const logMessage = (message, type = 'info') => {
+    const logMessage = (message) => {
         const span = document.createElement('span');
         span.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
         logsEl.prepend(span);
     };
 
+    // --- FIX: Use Capitalized field names to match the JSON from Go ---
     const renderServerCard = (server) => {
         return `
-            <div class="card server-card" data-server-name="${server.name}">
+            <div class="card server-card" data-server-name="${server.Name}">
                 <div class="card-header">
-                    <h3>${server.name}</h3>
+                    <h3>${server.Name}</h3>
                     <div class="status online">
                         <div class="status-dot"></div>
                         <span>Online</span>
                     </div>
                 </div>
                 <div class="card-body">
-                    <p><strong>Host:</strong> ${server.host}</p>
-                    <p><strong>User:</strong> ${server.user}</p>
+                    <p><strong>Host:</strong> ${server.Host}</p>
+                    <p><strong>User:</strong> ${server.User}</p>
                 </div>
                 <div class="card-footer">
-                    <input type="checkbox" class="server-card-checkbox" data-server-name="${server.name}">
+                    <input type="checkbox" class="server-card-checkbox" data-server-name="${server.Name}">
                     <label class="card-status">Awaiting task...</label>
                 </div>
             </div>
@@ -128,24 +131,32 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const populateDetailView = (serverName) => {
-        const server = servers.find(s => s.name === serverName);
+        const server = servers.find(s => s.Name === serverName); // Use s.Name
         if (!server) return;
         
-        detailServerName.textContent = server.name;
+        detailServerName.textContent = server.Name;
+        runSingleBtn.dataset.serverName = server.Name;
         detailInfoContent.innerHTML = `
-            <p><strong>Host:</strong> ${server.host}:${server.port}</p>
-            <p><strong>User:</strong> ${server.user}</p>
+            <p><strong>Host:</strong> ${server.Host}:${server.Port}</p> 
+            <p><strong>User:</strong> ${server.User}</p>
         `;
-        runSingleBtn.dataset.serverName = server.name;
+        
+        // Clear previous charts before showing the view
+        if(cpuChart) cpuChart.destroy();
+        if(memChart) memChart.destroy();
 
-        // You would fetch and display specific data/charts for this server here
-        // For now, let's just show the view
         showView('detail-view');
+        // Here you would fetch specific data for this server and render the charts
     };
+    // --- END OF FIX ---
+
 
     const initializeDashboard = async () => {
         try {
             const response = await fetch('/api/servers');
+            if (!response.ok) {
+                throw new Error(`Failed to fetch server list: ${response.statusText}`);
+            }
             servers = await response.json();
             
             serverCardsContainer.innerHTML = '';
@@ -164,7 +175,8 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             
         } catch (error) {
-            console.error('Failed to fetch server list:', error);
+            console.error(error);
+            serverCardsContainer.innerHTML = `<p style="color: red;">Could not load server list. Check console for errors.</p>`;
         }
     };
 
