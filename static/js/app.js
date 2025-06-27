@@ -107,42 +107,49 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const populateDetailView = (serverName) => {
         showView('detail-view');
+        
         const server = servers.find(s => s.name === serverName);
         if (!server) return;
 
-        detailServerName.textContent = server.name;
-        detailInfoContent.innerHTML = `<p><strong>Host:</strong> ${server.host}:${server.port}</p><p><strong>User:</strong> ${server.user}</p>`;
-        runSingleBtn.dataset.serverName = server.name;
-
+        // --- Start of The Fix ---
+        
+        // 1. Clear previous state
         if (cpuChart) cpuChart.destroy();
         if (memChart) memChart.destroy();
-        
-        const oldMetrics = detailInfoContent.querySelector('.detailed-metrics');
-        if (oldMetrics) oldMetrics.remove();
-
+        detailInfoContent.innerHTML = ''; // Clear the entire info panel
         cpuChartCanvas.parentElement.classList.remove('no-data');
         memChartCanvas.parentElement.classList.remove('no-data');
 
+        // 2. Set static info
+        detailServerName.textContent = server.name;
+        runSingleBtn.dataset.serverName = server.name;
+        
+        // 3. Find report and rebuild the entire view based on data
         const serverReport = latestReportData.find(r => r.serverName === serverName);
         
         if (serverReport) {
-            cpuChart = createChart(cpuChartCanvas, 'CPU', [serverReport.cpuUsage.toFixed(2)], '%');
-            memChart = createChart(memChartCanvas, 'Memory', [serverReport.memUsedMB], 'MB');
-            
-            const metricsDiv = document.createElement('div');
-            metricsDiv.className = 'detailed-metrics';
-            metricsDiv.innerHTML = `
+            // DATA FOUND: Build the full detailed view
+            detailInfoContent.innerHTML = `
+                <p><strong>Host:</strong> ${server.host}:${server.port}</p>
+                <p><strong>User:</strong> ${server.user}</p>
                 <hr>
                 <p><strong>Status:</strong> ${serverReport.isOnline ? 'Online' : 'Offline'}</p>
                 <p><strong>CPU Usage:</strong> ${serverReport.cpuUsage.toFixed(2)} %</p>
                 <p><strong>Memory:</strong> ${serverReport.memUsedMB} MB Used / ${serverReport.memTotalMB} MB Total</p>
                 <p><strong>Top Processes:</strong><pre>${serverReport.topProcesses}</pre></p>
             `;
-            detailInfoContent.appendChild(metricsDiv);
+            cpuChart = createChart(cpuChartCanvas, 'CPU', [serverReport.cpuUsage.toFixed(2)], '%');
+            memChart = createChart(memChartCanvas, 'Memory', [serverReport.memUsedMB], 'MB');
         } else {
+            // NO DATA: Build a simple view and show "no data" messages
+            detailInfoContent.innerHTML = `
+                <p><strong>Host:</strong> ${server.host}:${server.port}</p>
+                <p><strong>User:</strong> ${server.user}</p>
+            `;
             cpuChartCanvas.parentElement.classList.add('no-data');
             memChartCanvas.parentElement.classList.add('no-data');
         }
+        // --- End of The Fix ---
     };
     
     const fetchLatestReport = async () => {
@@ -175,7 +182,6 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     function createGradient(ctx, area, isCpu) {
-        const isLightMode = document.body.classList.contains('light-mode');
         const color1 = isCpu ? '#3a7bd5' : '#3ddc84';
         const color2 = isCpu ? '#00d2ff' : '#00a9e0';
         const gradient = ctx.createLinearGradient(0, area.bottom, 0, area.top);
@@ -214,11 +220,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     y: { 
                         beginAtZero: true,
                         grid: { color: gridColor, drawBorder: false },
-                        ticks: {
-                            color: textColor,
-                            padding: 10,
-                            callback: function(value) { return value + ` ${unit}`; }
-                        }
+                        ticks: { color: textColor, padding: 10, callback: function(value) { return value + ` ${unit}`; } }
                     },
                     x: {
                         grid: { display: false },
