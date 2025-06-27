@@ -115,25 +115,22 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>`;
 
     const populateDetailView = (serverName) => {
-        // *** THE CRITICAL FIX IS HERE ***
-        // 1. Make the view visible FIRST, so its containers have dimensions.
         showView('detail-view');
 
         const server = servers.find(s => s.name === serverName);
         if (!server) return;
 
-        // 2. Update basic info
         detailServerName.textContent = server.name;
         detailInfoContent.innerHTML = `<p><strong>Host:</strong> ${server.host}:${server.port}</p><p><strong>User:</strong> ${server.user}</p>`;
         runSingleBtn.dataset.serverName = server.name;
 
-        // 3. Destroy old charts to prevent memory leaks
         if (cpuChart) cpuChart.destroy();
         if (memChart) memChart.destroy();
         
-        // 4. Find the data and create new charts now that the canvas is visible
         const serverReport = latestReportData.find(r => r.serverName === serverName);
         if (serverReport) {
+            // *** THE CRITICAL FIX IS HERE ***
+            // Ensure all property names match the Go struct's JSON tags exactly.
             cpuChart = createChart(cpuChartCanvas, 'bar', [serverReport.serverName], 'CPU Usage %', [serverReport.cpuUsage.toFixed(2)], 'rgba(62, 123, 225, 0.6)');
             memChart = createChart(memChartCanvas, 'bar', [serverReport.serverName], 'Memory Used (MB)', [serverReport.memUsedMB], 'rgba(76, 175, 80, 0.6)');
             
@@ -183,7 +180,7 @@ document.addEventListener('DOMContentLoaded', () => {
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                animation: true, // Re-enable animation for a nice effect
+                animation: true,
                 scales: { y: { beginAtZero: true } },
                 plugins: { legend: { display: false } }
             }
