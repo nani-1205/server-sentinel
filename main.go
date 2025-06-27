@@ -17,12 +17,12 @@ func main() {
 	// 2. Initialize the cron scheduler
 	scheduler.InitScheduler()
 
-	// 3. Set up HTTP routes
-	handlers.SetupRoutes()
+	// 3. Set up HTTP router from handlers package
+	router := handlers.NewRouter()
 
-	// 4. Start the web server
+	// 4. Start the web server, using our new router
 	log.Println("Starting Server Sentinel web interface on :8080")
-	if err := http.ListenAndServe(":8080", nil); err != nil {
+	if err := http.ListenAndServe(":8080", router); err != nil {
 		log.Fatalf("Failed to start server: %v", err)
 	}
 }
