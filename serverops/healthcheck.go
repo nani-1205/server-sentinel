@@ -16,6 +16,7 @@ import (
 
 type HealthReport struct {
 	ServerName      string
+	ServerHost      string
 	IsOnline        bool
 	Error           string
 	CacheCleared    bool

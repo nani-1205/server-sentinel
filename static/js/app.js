@@ -16,6 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let cpuChart, memChart;
     let servers = [];
+    let latestReportData = []; // Store the full report data
     let socket;
 
     // --- Theme Manager ---
@@ -37,9 +38,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- WebSocket ---
     const connectWebSocket = () => {
         socket = new WebSocket(`ws://${window.location.host}/ws/run`);
-        socket.onopen = () => logMessage('✅ WebSocket connection established.');
+        socket.onopen = () => logMessage('✅ WebSocket connection established.', 'success');
         socket.onclose = () => {
-            logMessage('⚠️ WebSocket connection closed. Reconnecting...');
+            logMessage('⚠️ WebSocket connection closed. Reconnecting...', 'warn');
             setTimeout(connectWebSocket, 3000);
         };
         socket.onmessage = (event) => {
@@ -57,11 +58,13 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             if (msg.includes('🏁 Process complete.')) {
                 enableAllButtons();
-                // If we are on a detail view, refresh its data
-                if(detailView.classList.contains('active')) {
-                    const serverName = detailServerName.textContent;
-                    populateDetailView(serverName);
-                }
+                fetchLatestReport().then(() => {
+                    // If we are on a detail page, refresh its data
+                    if (detailView.classList.contains('active')) {
+                        const serverName = detailServerName.textContent;
+                        populateDetailView(serverName, true); // force data refresh
+                    }
+                });
             }
         };
     };
@@ -70,11 +73,8 @@ document.addEventListener('DOMContentLoaded', () => {
     runAllBtn.addEventListener('click', () => runChecks(['all']));
     runSelectedBtn.addEventListener('click', () => {
         const selectedServers = Array.from(document.querySelectorAll('.server-card-checkbox:checked')).map(cb => cb.dataset.serverName);
-        if (selectedServers.length > 0) {
-            runChecks(selectedServers);
-        } else {
-            alert('No servers selected.');
-        }
+        if (selectedServers.length > 0) runChecks(selectedServers);
+        else alert('No servers selected.');
     });
     runSingleBtn.addEventListener('click', () => {
         const serverName = runSingleBtn.dataset.serverName;
@@ -94,169 +94,99 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
     
-    const disableAllButtons = () => {
-        [runAllBtn, runSelectedBtn, runSingleBtn].forEach(btn => btn.disabled = true);
-    };
+    const disableAllButtons = () => [runAllBtn, runSelectedBtn, runSingleBtn].forEach(btn => btn.disabled = true);
+    const enableAllButtons = () => [runAllBtn, runSelectedBtn, runSingleBtn].forEach(btn => btn.disabled = false);
+    const logMessage = (message) => logsEl.prepend(`[${new Date().toLocaleTimeString()}] ${message}\n`);
 
-    const enableAllButtons = () => {
-        [runAllBtn, runSelectedBtn, runSingleBtn].forEach(btn => btn.disabled = false);
-    };
-
-    const logMessage = (message) => {
-        const span = document.createElement('span');
-        span.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
-        logsEl.prepend(span); // Use prepend to show newest logs at the top
-    };
-
-    const renderServerCard = (server) => {
-        return `
-            <div class="card server-card" data-server-name="${server.name}">
-                <div class="card-header">
-                    <h3>${server.name}</h3>
-                    <div class="status online">
-                        <div class="status-dot"></div>
-                        <span>Online</span>
-                    </div>
-                </div>
-                <div class="card-body">
-                    <p><strong>Host:</strong> ${server.host}</p>
-                    <p><strong>User:</strong> ${server.user}</p>
-                </div>
-                <div class="card-footer">
-                    <input type="checkbox" class="server-card-checkbox" data-server-name="${server.name}">
-                    <label class="card-status">Awaiting task...</label>
-                </div>
+    const renderServerCard = (server) => `
+        <div class="card server-card" data-server-name="${server.name}">
+            <div class="card-header"><h3>${server.name}</h3></div>
+            <div class="card-body">
+                <p><strong>Host:</strong> ${server.host}</p>
+                <p><strong>User:</strong> ${server.user}</p>
             </div>
-        `;
-    };
+            <div class="card-footer">
+                <input type="checkbox" class="server-card-checkbox" data-server-name="${server.name}">
+                <label class="card-status">Awaiting task...</label>
+            </div>
+        </div>`;
 
-    const populateDetailView = async (serverName) => {
+    const populateDetailView = (serverName, forceDataRefresh = false) => {
         const server = servers.find(s => s.name === serverName);
         if (!server) return;
 
-        showView('detail-view');
-
         detailServerName.textContent = server.name;
+        detailInfoContent.innerHTML = `<p><strong>Host:</strong> ${server.host}:${server.port}</p><p><strong>User:</strong> ${server.user}</p>`;
         runSingleBtn.dataset.serverName = server.name;
 
-        // Clear old data first
-        detailInfoContent.innerHTML = `<p><em>Loading data...</em></p>`;
-        if(cpuChart) cpuChart.destroy();
-        if(memChart) memChart.destroy();
+        // Find the data for this specific server from the last report
+        const serverReport = latestReportData.find(r => r.ServerName === serverName);
+        if (serverReport) {
+            // Update CPU Chart
+            if (cpuChart) cpuChart.destroy();
+            cpuChart = createChart('cpuChart', 'bar', [serverReport.ServerName], 'CPU Usage %', [serverReport.CPUUsage.toFixed(2)], 'rgba(62, 123, 225, 0.6)');
+            
+            // Update Memory Chart
+            if (memChart) memChart.destroy();
+            memChart = createChart('memChart', 'bar', [serverReport.ServerName], 'Memory Used (MB)', [serverReport.MemUsedMB], 'rgba(76, 175, 80, 0.6)');
 
+            // Add detailed metrics to the info box
+            detailInfoContent.innerHTML += `
+                <hr>
+                <p><strong>Status:</strong> ${serverReport.IsOnline ? 'Online' : 'Offline'}</p>
+                <p><strong>CPU Usage:</strong> ${serverReport.CPUUsage.toFixed(2)} %</p>
+                <p><strong>Memory:</strong> ${serverReport.MemUsedMB} MB Used / ${serverReport.MemTotalMB} MB Total</p>
+                <p><strong>Top Processes:</strong><pre>${serverReport.TopProcesses}</pre></p>
+            `;
+        }
+
+        showView('detail-view');
+    };
+    
+    const fetchLatestReport = async () => {
         try {
             const response = await fetch('/api/latest-report');
-            if (!response.ok) {
-                 detailInfoContent.innerHTML = `
-                    <p><strong>Host:</strong> ${server.host}:${server.port}</p>
-                    <p><strong>User:</strong> ${server.user}</p>
-                    <p><em>No report data available. Run a health check.</em></p>
-                `;
-                return;
-            }
-
-            const reportData = await response.json();
-            const serverReport = reportData.find(r => r.ServerName === serverName);
-
-            if (serverReport) {
-                const statusClass = serverReport.IsOnline ? 'status-online' : 'status-offline';
-                const statusText = serverReport.IsOnline ? 'Online' : 'Offline';
-                detailInfoContent.innerHTML = `
-                    <p><strong>Host:</strong> ${server.host}:${server.port}</p>
-                    <p><strong>User:</strong> ${server.user}</p>
-                    <p><strong>Status:</strong> <span class="${statusClass}">${statusText}</span></p>
-                    <p><strong>CPU Usage:</strong> ${serverReport.CPUUsage.toFixed(2)}%</p>
-                    <p><strong>Memory:</strong> ${serverReport.MemUsedMB} MB / ${serverReport.MemTotalMB} MB Used</p>
-                    <p><strong>Swap:</strong> ${serverReport.SwapUsedMB} MB / ${serverReport.SwapTotalMB} MB Used</p>
-                `;
-
-                const labels = [serverReport.ServerName];
-                const cpuData = [serverReport.CPUUsage.toFixed(2)];
-                const memData = [serverReport.MemUsedMB];
-
-                if (cpuChart) cpuChart.destroy();
-                cpuChart = createChart('cpuChart', 'bar', labels, 'CPU Usage %', cpuData, 'rgba(99, 102, 241, 0.7)');
-
-                if (memChart) memChart.destroy();
-                memChart = createChart('memChart', 'bar', labels, 'Memory Used (MB)', memData, 'rgba(34, 197, 94, 0.7)');
-                
-            } else {
-                 detailInfoContent.innerHTML = `
-                    <p><strong>Host:</strong> ${server.host}:${server.port}</p>
-                    <p><strong>User:</strong> ${server.user}</p>
-                    <p><em>No report data found for this server. Run a health check.</em></p>
-                `;
-            }
-
+            if (response.ok) latestReportData = await response.json();
         } catch (error) {
-            console.error('Failed to populate detail view:', error);
-            detailInfoContent.innerHTML = `<p>Error loading server details.</p>`;
+            console.error('Failed to fetch latest report:', error);
+        }
+    };
+
+    const initializeDashboard = async () => {
+        try {
+            await fetchLatestReport(); // Get any existing data on load
+            const response = await fetch('/api/servers');
+            servers = await response.json();
+            
+            serverCardsContainer.innerHTML = servers.map(renderServerCard).join('');
+            document.querySelectorAll('.server-card').forEach(card => {
+                card.addEventListener('click', e => {
+                    if (e.target.type === 'checkbox') return;
+                    populateDetailView(card.dataset.serverName);
+                });
+            });
+        } catch (error) {
+            console.error('Failed to initialize dashboard:', error);
         }
     };
 
     function createChart(canvasId, type, labels, label, data, color) {
         const ctx = document.getElementById(canvasId).getContext('2d');
-        ctx.canvas.parentNode.style.height = '250px';
-
         return new Chart(ctx, {
             type: type,
             data: {
                 labels: labels,
-                datasets: [{
-                    label: label,
-                    data: data,
-                    backgroundColor: color,
-                    borderColor: color.replace('0.7', '1'),
-                    borderWidth: 1,
-                    barPercentage: 0.5,
-                }]
+                datasets: [{ label: label, data: data, backgroundColor: color }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
                 onResize: null,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: { color: 'var(--text-secondary)' },
-                        grid: { color: 'var(--border-color)' }
-                    },
-                    x: {
-                        ticks: { color: 'var(--text-secondary)' },
-                        grid: { display: false }
-                    }
-                },
-                plugins: {
-                    legend: {
-                        display: false
-                    }
-                }
+                scales: { y: { beginAtZero: true } },
+                plugins: { legend: { display: false } }
             }
         });
     }
-
-    const initializeDashboard = async () => {
-        try {
-            const response = await fetch('/api/servers');
-            servers = await response.json();
-            
-            serverCardsContainer.innerHTML = '';
-            servers.forEach(server => {
-                serverCardsContainer.innerHTML += renderServerCard(server);
-            });
-
-            document.querySelectorAll('.server-card').forEach(card => {
-                card.addEventListener('click', (e) => {
-                    if (e.target.type === 'checkbox') return;
-                    const serverName = card.dataset.serverName;
-                    populateDetailView(serverName);
-                });
-            });
-            
-        } catch (error) {
-            console.error('Failed to fetch server list:', error);
-        }
-    };
 
     // --- Initial Load ---
     initializeDashboard();
