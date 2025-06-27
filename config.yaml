@@ -15,7 +15,7 @@ smtp:
   host: "smtp.gmail.com" # Use your SMTP server
   port: 587
   username: "nani.y9966@gmail.com" # Use your email address
-  password: "sfjwjzerlgbegogf" # For app passwords, use them here
+  password: "" # For app passwords, use them here
   from: "nani.y9966@gmail.com"
   to:
     - "prabhakararao.nandigrama@assettl.com"
