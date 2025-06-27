@@ -76,7 +76,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             const data = await response.json();
             updateDashboard(data);
-        } catch (error) {
+        } catch (error)
+        {
             logMessage(`Error fetching report: ${error.message}`, 'error');
         }
     }
@@ -93,7 +94,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Memory Chart
         const memUsedData = data.map(s => s.MemUsedMB);
-        const memTotalData = data.map(s => s.MemTotalMB);
         if (memChart) memChart.destroy();
         memChart = createChart('memChart', 'bar', labels, 'Memory Used (MB)', memUsedData, 'rgba(76, 175, 80, 0.6)');
         
@@ -131,6 +131,10 @@ document.addEventListener('DOMContentLoaded', () => {
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                // --- FIX FOR RESIZE LOOP ---
+                // This tells Chart.js not to listen for resize events after the initial draw.
+                onResize: null,
+                // --- END FIX ---
                 scales: {
                     y: {
                         beginAtZero: true,

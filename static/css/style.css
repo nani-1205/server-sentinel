@@ -46,7 +46,10 @@ header h1 {
 
 main {
     display: grid;
-    grid-template-columns: 1fr 2fr;
+    /* --- FIX FOR RESIZE LOOP --- */
+    /* Give the left column a fixed width to prevent it from affecting the right column's layout */
+    grid-template-columns: 400px 1fr;
+    /* --- END FIX --- */
     gap: 2rem;
 }
 
@@ -119,14 +122,12 @@ main {
     margin-bottom: 2rem;
 }
 
-/* --- FIX FOR COLLAPSING CHARTS --- */
 .chart-container {
-    position: relative; /* Required for Chart.js responsiveness */
-    min-height: 300px; 
+    position: relative;
+    min-height: 300px;
     display: flex;
     flex-direction: column;
 }
-/* --- END FIX --- */
 
 .chart-container h3 {
     text-align: center;
@@ -136,7 +137,7 @@ main {
 
 .table-container {
     margin-top: 1rem;
-    overflow-x: auto; /* Ensures table is responsive on small screens */
+    overflow-x: auto;
 }
 
 #detailsTable {
@@ -170,7 +171,7 @@ main {
 
 @media (max-width: 900px) {
     main {
-        grid-template-columns: 1fr;
+        grid-template-columns: 1fr; /* Stack columns on smaller screens */
     }
     .charts-grid {
         grid-template-columns: 1fr;
