@@ -12,6 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         socket.onopen = () => {
             logMessage('WebSocket connection established.', 'success');
+            runBtn.disabled = false;
         };
 
         socket.onmessage = (event) => {
@@ -28,16 +29,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if(msg.includes('🏁 Process complete.')) {
                 fetchLatestReport();
+                runBtn.disabled = false; // Re-enable button
             }
         };
 
         socket.onclose = () => {
             logMessage('WebSocket connection closed. Reconnecting...', 'warn');
+            runBtn.disabled = true;
             setTimeout(connectWebSocket, 3000); // Try to reconnect every 3 seconds
         };
 
         socket.onerror = (error) => {
             logMessage(`WebSocket error: ${error.message}`, 'error');
+            runBtn.disabled = true;
         };
     }
 
@@ -54,6 +58,7 @@ document.addEventListener('DOMContentLoaded', () => {
             logsEl.innerHTML = ''; // Clear previous logs
             socket.send("start-run");
             logMessage('Manual check initiated...', 'info');
+            runBtn.disabled = true; // Disable button during run
         } else {
             logMessage('WebSocket is not connected. Please wait.', 'error');
         }
@@ -96,9 +101,11 @@ document.addEventListener('DOMContentLoaded', () => {
         tableBody.innerHTML = ''; // Clear existing rows
         data.forEach(server => {
             const row = tableBody.insertRow();
+            const status = server.IsOnline ? 'Online' : 'Offline';
+            const statusClass = server.IsOnline ? 'status-online' : 'status-offline';
             row.innerHTML = `
                 <td>${server.ServerName}</td>
-                <td><span class="${server.IsOnline ? 'success' : 'error'}">${server.IsOnline ? 'Online' : 'Offline'}</span></td>
+                <td><span class="${statusClass}">${status}</span></td>
                 <td>${server.CPUUsage.toFixed(2)}</td>
                 <td>${server.MemUsedMB} MB</td>
                 <td>${server.MemFreeMB} MB</td>

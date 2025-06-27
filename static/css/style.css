@@ -84,6 +84,11 @@ main {
     background: #5a8bcd;
 }
 
+#run-manual-btn:disabled {
+    background-color: #555;
+    cursor: not-allowed;
+}
+
 .logs-container {
     margin-top: 1rem;
 }
@@ -114,6 +119,15 @@ main {
     margin-bottom: 2rem;
 }
 
+/* --- FIX FOR COLLAPSING CHARTS --- */
+.chart-container {
+    position: relative; /* Required for Chart.js responsiveness */
+    min-height: 300px; 
+    display: flex;
+    flex-direction: column;
+}
+/* --- END FIX --- */
+
 .chart-container h3 {
     text-align: center;
     margin-bottom: 1rem;
@@ -122,6 +136,7 @@ main {
 
 .table-container {
     margin-top: 1rem;
+    overflow-x: auto; /* Ensures table is responsive on small screens */
 }
 
 #detailsTable {
@@ -143,8 +158,21 @@ main {
     background-color: rgba(255, 255, 255, 0.1);
 }
 
+#detailsTable .status-online {
+    color: var(--success-color);
+    font-weight: bold;
+}
+
+#detailsTable .status-offline {
+    color: var(--error-color);
+    font-weight: bold;
+}
+
 @media (max-width: 900px) {
     main {
+        grid-template-columns: 1fr;
+    }
+    .charts-grid {
         grid-template-columns: 1fr;
     }
 }
